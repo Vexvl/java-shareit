@@ -16,5 +16,4 @@ public interface UserRepository {
 
     void deleteUser(Long ownerId);
 
-    boolean emailCoincidence(String email);
 }

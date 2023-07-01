@@ -25,7 +25,6 @@ public class ItemRepositoryImpl implements ItemRepository {
         item.setId(id);
         itemMap.put(id, item);
         usersItemMap.computeIfAbsent(ownerId, k -> new ArrayList<>()).add(item);
-
         return item;
     }
 

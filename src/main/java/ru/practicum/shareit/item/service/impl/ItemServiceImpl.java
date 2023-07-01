@@ -2,9 +2,9 @@ package ru.practicum.shareit.item.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.exception.ExistingException;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.service.ItemService;
@@ -23,7 +23,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto addItem(Long ownerId, ItemDto itemDto) {
-        if (!userRepository.getAllUsers().containsKey(ownerId)){
+        if (!userRepository.getAllUsers().containsKey(ownerId)) {
             throw new ExistingException("User не существует");
         }
         Item item = itemMapper.toItem(itemDto);

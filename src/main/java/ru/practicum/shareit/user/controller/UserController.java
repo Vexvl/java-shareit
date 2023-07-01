@@ -26,6 +26,7 @@ public class UserController {
     public UserDto addUser(@RequestBody @Valid UserDto userDto) {
         return userService.addUser(userDto);
     }
+
     @GetMapping
     public List<UserDto> getAllUsers() {
         return userService.getAllUsers();

@@ -19,9 +19,10 @@ public class UserRepositoryImpl implements UserRepository {
     private final Map<Long, User> usersMap = new HashMap<>();
     private final Set<String> emailsSet = new HashSet<>();
     private long ownerId;
+
     @Override
     public User addUser(User user) {
-        if (emailsSet.contains(user.getEmail())){
+        if (emailsSet.contains(user.getEmail())) {
             throw new EmailExistence("Email уже зарегестрирован");
         }
         ownerId++;
@@ -37,7 +38,7 @@ public class UserRepositoryImpl implements UserRepository {
         if (user != null) {
             if (user.getEmail() != null) {
                 String newEmail = user.getEmail();
-                if (emailsSet.contains(newEmail) && !existingUser.getEmail().equals(user.getEmail())){
+                if (emailsSet.contains(newEmail) && !existingUser.getEmail().equals(user.getEmail())) {
                     throw new EmailExistence("Email уже используется");
                 }
                 emailsSet.remove(existingUser.getEmail());
@@ -62,8 +63,7 @@ public class UserRepositoryImpl implements UserRepository {
     public User getUser(Long ownerId) {
         if (usersMap.containsKey(ownerId)) {
             return usersMap.get(ownerId);
-        }
-        else throw new ExistingException("Такого user нет");
+        } else throw new ExistingException("Такого user нет");
     }
 
     @Override
@@ -71,15 +71,11 @@ public class UserRepositoryImpl implements UserRepository {
         if (usersMap.containsKey(ownerId)) {
             emailsSet.remove(usersMap.get(ownerId).getEmail());
             usersMap.remove(ownerId);
-        }
-        else throw new ExistingException("Такого user нет");
+        } else throw new ExistingException("Такого user нет");
     }
 
     @Override
-    public boolean emailCoincidence(String email){
-        if (emailsSet.contains(email)){
-            return true;
-        }
-        else return false;
+    public boolean emailCoincidence(String email) {
+        return emailsSet.contains(email);
     }
 }

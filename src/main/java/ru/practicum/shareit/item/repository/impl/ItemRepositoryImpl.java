@@ -6,7 +6,10 @@ import ru.practicum.shareit.item.exception.ExistingException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 @Slf4j
@@ -17,12 +20,12 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public Item addItem(Long ownerId, Item item) {
-        if (ownerId != null){
+        if (ownerId != null) {
             item.setOwnerId(ownerId);
         }
         id++;
         item.setId(id);
-        itemMap.put(id,item);
+        itemMap.put(id, item);
         usersItemMap.computeIfAbsent(ownerId, k -> new ArrayList<>()).add(item);
         return item;
     }
@@ -33,13 +36,13 @@ public class ItemRepositoryImpl implements ItemRepository {
         if (existingItem == null) {
             throw new ExistingException("Элемент не найден");
         }
-        if (item.getAvailable() != null){
+        if (item.getAvailable() != null) {
             existingItem.setAvailable(item.getAvailable());
         }
-        if (item.getDescription() != null){
+        if (item.getDescription() != null) {
             existingItem.setDescription(item.getDescription());
         }
-        if (item.getName() != null){
+        if (item.getName() != null) {
             existingItem.setName(item.getName());
         }
         return existingItem;

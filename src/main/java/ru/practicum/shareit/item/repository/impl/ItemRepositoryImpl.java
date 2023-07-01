@@ -2,14 +2,12 @@ package ru.practicum.shareit.item.repository.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.practicum.shareit.item.exception.AccessDeniedException;
 import ru.practicum.shareit.item.exception.ExistingException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -31,18 +29,21 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public Item editItem(Long itemId, Long ownerId, Item item) {
+    public Item editItem(Long ownerId, Long itemId, Item item) {
         Item existingItem = itemMap.get(itemId);
         if (existingItem == null) {
             throw new ExistingException("Элемент не найден");
         }
-        if (item.getAvailable() != null) {
+        if (!Objects.equals(existingItem.getOwnerId(), ownerId)){
+            throw new AccessDeniedException("User не имеет права редактировать");
+        }
+        if (item.getAvailable() != null){
             existingItem.setAvailable(item.getAvailable());
         }
-        if (item.getDescription() != null) {
+        if (item.getDescription() != null){
             existingItem.setDescription(item.getDescription());
         }
-        if (item.getName() != null) {
+        if (item.getName() != null){
             existingItem.setName(item.getName());
         }
         return existingItem;

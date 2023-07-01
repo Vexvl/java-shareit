@@ -31,9 +31,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto editItem(Long itemId, Long ownerId, ItemDto itemDto) {
+    public ItemDto editItem(Long ownerId, Long itemId, ItemDto itemDto) {
         Item item = itemMapper.toItem(itemDto);
-        return itemMapper.toItemDto(itemRepository.editItem(itemId, ownerId, item));
+        return itemMapper.toItemDto(itemRepository.editItem(ownerId, itemId, item));
     }
 
     @Override

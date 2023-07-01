@@ -8,7 +8,7 @@ public interface ItemService {
 
     ItemDto addItem(Long ownerId, ItemDto itemDto);
 
-    ItemDto editItem(Long itemId, Long ownerId, ItemDto itemDto);
+    ItemDto editItem(Long ownerId, Long itemId, ItemDto itemDto);
 
     ItemDto getItem(Long itemIdm, Long ownerId);
 

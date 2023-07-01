@@ -34,16 +34,16 @@ public class ItemRepositoryImpl implements ItemRepository {
         if (existingItem == null) {
             throw new ExistingException("Элемент не найден");
         }
-        if (!Objects.equals(existingItem.getOwnerId(), ownerId)){
+        if (!Objects.equals(existingItem.getOwnerId(), ownerId)) {
             throw new AccessDeniedException("User не имеет права редактировать");
         }
-        if (item.getAvailable() != null){
+        if (item.getAvailable() != null) {
             existingItem.setAvailable(item.getAvailable());
         }
-        if (item.getDescription() != null){
+        if (item.getDescription() != null) {
             existingItem.setDescription(item.getDescription());
         }
-        if (item.getName() != null){
+        if (item.getName() != null) {
             existingItem.setName(item.getName());
         }
         return existingItem;

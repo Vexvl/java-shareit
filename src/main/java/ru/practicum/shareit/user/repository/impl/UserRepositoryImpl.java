@@ -74,8 +74,4 @@ public class UserRepositoryImpl implements UserRepository {
         } else throw new ExistingException("Такого user нет");
     }
 
-    @Override
-    public boolean emailCoincidence(String email) {
-        return emailsSet.contains(email);
-    }
 }

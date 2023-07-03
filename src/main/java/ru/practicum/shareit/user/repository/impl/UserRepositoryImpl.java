@@ -3,7 +3,7 @@ package ru.practicum.shareit.user.repository.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.exception.AbsenceException;
-import ru.practicum.shareit.user.exception.EmailAbsenceException;
+import ru.practicum.shareit.user.exception.EmailDuplicateException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -23,7 +23,7 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public User addUser(User user) {
         if (emailsSet.contains(user.getEmail())) {
-            throw new EmailAbsenceException("Email уже зарегестрирован");
+            throw new EmailDuplicateException("Email уже зарегестрирован");
         }
         ownerId++;
         user.setId(ownerId);
@@ -41,7 +41,7 @@ public class UserRepositoryImpl implements UserRepository {
         if (user.getEmail() != null) {
             String newEmail = user.getEmail();
             if (emailsSet.contains(newEmail) && !existingUser.getEmail().equals(newEmail)) {
-                throw new EmailAbsenceException("Email уже используется");
+                throw new EmailDuplicateException("Email уже используется");
             }
             emailsSet.remove(existingUser.getEmail());
             existingUser.setEmail(newEmail);

@@ -12,7 +12,7 @@ import java.util.Map;
 public class ExceptionsHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleNotFound(ExistingException e) {
+    public Map<String, String> handleNotFound(AbsenceException e) {
         return Map.of("error", "Такого элемента нет", "errorMessage", "Ошибка на сервере");
     }
 

@@ -3,7 +3,7 @@ package ru.practicum.shareit.user.repository.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.exception.AbsenceException;
-import ru.practicum.shareit.user.exception.EmailExistence;
+import ru.practicum.shareit.user.exception.EmailAbsenceException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -23,7 +23,7 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public User addUser(User user) {
         if (emailsSet.contains(user.getEmail())) {
-            throw new EmailExistence("Email уже зарегестрирован");
+            throw new EmailAbsenceException("Email уже зарегестрирован");
         }
         ownerId++;
         user.setId(ownerId);
@@ -34,24 +34,24 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User editUser(Long ownerId, User user) {
-        User existingUser = usersMap.get(ownerId);
-        if (user != null) {
-            if (user.getEmail() != null) {
-                String newEmail = user.getEmail();
-                if (emailsSet.contains(newEmail) && !existingUser.getEmail().equals(user.getEmail())) {
-                    throw new EmailExistence("Email уже используется");
-                }
-                emailsSet.remove(existingUser.getEmail());
-                existingUser.setEmail(newEmail);
-                emailsSet.add(user.getEmail());
-            }
-            if (user.getName() != null) {
-                existingUser.setName(user.getName());
-            }
-        } else {
+        if (user == null) {
             throw new IllegalArgumentException("User null");
         }
-        return usersMap.get(ownerId);
+        User existingUser = usersMap.get(ownerId);
+        if (user.getEmail() != null) {
+            String newEmail = user.getEmail();
+            if (emailsSet.contains(newEmail) && !existingUser.getEmail().equals(newEmail)) {
+                throw new EmailAbsenceException("Email уже используется");
+            }
+            emailsSet.remove(existingUser.getEmail());
+            existingUser.setEmail(newEmail);
+            emailsSet.add(newEmail);
+        }
+        if (user.getName() != null) {
+            existingUser.setName(user.getName());
+        }
+
+        return existingUser;
     }
 
     @Override

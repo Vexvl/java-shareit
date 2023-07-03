@@ -68,10 +68,10 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void deleteUser(Long ownerId) {
-        if (usersMap.containsKey(ownerId)) {
-            emailsSet.remove(usersMap.get(ownerId).getEmail());
-            usersMap.remove(ownerId);
-        } else throw new AbsenceException("Такого user нет");
+        if (!usersMap.containsKey(ownerId)) {
+            throw new AbsenceException("Такого user нет");
+        }
+        emailsSet.remove(usersMap.get(ownerId).getEmail());
+        usersMap.remove(ownerId);
     }
-
 }

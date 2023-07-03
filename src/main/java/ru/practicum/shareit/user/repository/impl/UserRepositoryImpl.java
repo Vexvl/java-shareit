@@ -2,7 +2,7 @@ package ru.practicum.shareit.user.repository.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.practicum.shareit.item.exception.ExistingException;
+import ru.practicum.shareit.item.exception.AbsenceException;
 import ru.practicum.shareit.user.exception.EmailExistence;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -63,7 +63,7 @@ public class UserRepositoryImpl implements UserRepository {
     public User getUser(Long ownerId) {
         if (usersMap.containsKey(ownerId)) {
             return usersMap.get(ownerId);
-        } else throw new ExistingException("Такого user нет");
+        } else throw new AbsenceException("Такого user нет");
     }
 
     @Override
@@ -71,7 +71,7 @@ public class UserRepositoryImpl implements UserRepository {
         if (usersMap.containsKey(ownerId)) {
             emailsSet.remove(usersMap.get(ownerId).getEmail());
             usersMap.remove(ownerId);
-        } else throw new ExistingException("Такого user нет");
+        } else throw new AbsenceException("Такого user нет");
     }
 
 }

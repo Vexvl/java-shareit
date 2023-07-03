@@ -10,15 +10,15 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ExceptionsHandler {
-    @ExceptionHandler
+    @ExceptionHandler(AbsenceException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleNotFound(AbsenceException e) {
+    public Map<String, String> handleAbsenceException(AbsenceException e) {
         return Map.of("error", "Такого элемента нет", "errorMessage", "Ошибка на сервере");
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleNotFound(AccessDeniedException e) {
+    public Map<String, String> handleAccessDeniedException(AccessDeniedException e) {
         return Map.of("error", "Вещь не принадлежит user", "errorMessage", "Ошибка на сервере");
     }
 
@@ -28,9 +28,9 @@ public class ExceptionsHandler {
         return Map.of("error", "Возникло непредвиденное исключение", "errorMessage", "Ошибка на сервере");
     }
 
-    @ExceptionHandler(Throwable.class)
+    @ExceptionHandler(InvalidRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleThrowable(InvalidRequestException t) {
+    public Map<String, String> handleInvalidRequestException(InvalidRequestException e) {
         return Map.of("error", "BAD_REQUEST", "errorMessage", "Ошибка на сервере");
     }
 }

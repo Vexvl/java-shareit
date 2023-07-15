@@ -23,9 +23,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto addItem(Long ownerId, ItemDto itemDto) {
-        if (!userRepository.getAllUsers().containsKey(ownerId)) {
-            throw new AbsenceException("User не существует");
-        }
+        //if (!userRepository.getAllUsers().containsKey(ownerId)) {
+       //     throw new AbsenceException("User не существует");
+       // }
         Item item = itemMapper.toItem(itemDto);
         return itemMapper.toItemDto(itemRepository.addItem(ownerId, item));
     }

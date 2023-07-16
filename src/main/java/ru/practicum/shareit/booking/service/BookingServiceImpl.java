@@ -149,7 +149,7 @@ public class BookingServiceImpl implements BookingService {
                 bookingList = bookingRepository.findByItemOwnerId(ownerId, sortByStartDesc);
                 break;
         }
-        return bookingList.stream().map(bookingMapper::toBookingDto).sorted(Comparator.comparing(BookingDto::getStart).reversed()).collect(Collectors.toList());
+        return bookingList.stream().map(bookingMapper::toBookingDto).collect(Collectors.toList());
     }
 
     private BookingState getBookingState(String state) {

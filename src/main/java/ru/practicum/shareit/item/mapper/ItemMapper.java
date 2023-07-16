@@ -19,34 +19,20 @@ public class ItemMapper {
     private final CommentMapper commentMapper;
 
     public ItemDto toItemDto(Item item) {
-        return ItemDto.builder()
-                .id(item.getId())
-                .name(item.getName())
-                .description(item.getDescription())
-                .available(item.getAvailable())
-                .itemRequestId(item.getRequest() != null ? item.getRequest() : null)
+        return ItemDto.builder().id(item.getId()).name(item.getName()).description(item.getDescription())
+                .available(item.getAvailable()).itemRequestId(item.getRequest() != null ? item.getRequest() : null)
                 .build();
     }
 
     public Item toItem(ItemDto itemDto, User user) {
-        return Item.builder()
-                .id(itemDto.getId())
-                .name(itemDto.getName())
-                .description(itemDto.getDescription())
-                .available(itemDto.getAvailable())
-                .owner(user)
-                .request(itemDto.getItemRequestId())
-                .build();
+        return Item.builder().id(itemDto.getId()).name(itemDto.getName()).description(itemDto.getDescription())
+                .available(itemDto.getAvailable()).owner(user).request(itemDto.getItemRequestId()).build();
     }
 
     public ItemDtoBookingComments toItemDtoBookingComments(Item item, List<Comment> commentList) {
-        return ItemDtoBookingComments.builder()
-                .id(item.getId())
-                .name(item.getName())
-                .description(item.getDescription())
-                .available(item.getAvailable())
+        return ItemDtoBookingComments.builder().id(item.getId()).name(item.getName()).description(item.getDescription())
+                .available(item.getAvailable()).lastBooking(null).nextBooking(null)
                 .request(item.getRequest() != null ? item.getRequest() : null)
-                .comments(commentList.stream().map(commentMapper::toDto).collect(Collectors.toList()))
-                .build();
+                .comments(commentList.stream().map(commentMapper::toDto).collect(Collectors.toList())).build();
     }
 }

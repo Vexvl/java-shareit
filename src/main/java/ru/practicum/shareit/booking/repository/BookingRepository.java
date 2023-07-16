@@ -8,24 +8,13 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    @Query("SELECT b FROM Booking b WHERE b.item.id = ?1 AND b.start < CURRENT_TIMESTAMP AND b.status = 'APPROVED'")
+    @Query("SELECT b FROM Booking b WHERE b.item.id = ?1 AND b.start < CURRENT_TIMESTAMP AND b.status = 'APPROVED' ORDER BY b.end DESC")
     List<Booking> findLastOrderedBookingsByItemId(Long itemId);
 
-    @Query("SELECT b FROM Booking b WHERE b.item.id = ?1 AND b.start > CURRENT_TIMESTAMP AND b.status = 'APPROVED'")
+    @Query("SELECT b FROM Booking b WHERE b.item.id = ?1 AND b.start > CURRENT_TIMESTAMP AND b.status = 'APPROVED' ORDER BY b.end ASC")
     List<Booking> findNextOrderedBookingsByItemId(Long itemId);
-
-    Optional<Booking> findTopByStatusAndItemIdAndStartIsBefore(BookingStatus status,
-                                                               Long itemId,
-                                                               LocalDateTime date,
-                                                               Sort sort);
-
-    Optional<Booking> findTopByStatusAndItemIdAndStartAfter(BookingStatus status,
-                                                            Long itemId,
-                                                            LocalDateTime date,
-                                                            Sort sort);
 
     List<Booking> findByItemOwnerIdAndStatus(Long ownerId, BookingStatus status);
 

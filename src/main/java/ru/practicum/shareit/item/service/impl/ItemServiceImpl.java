@@ -77,13 +77,18 @@ public class ItemServiceImpl implements ItemService {
         ItemDtoBookingComments itemDtoBookingComments = itemMapper.toItemDtoBookingComments(item, commentRepository.findAllByItem(item));
         List<Booking> nextBookingsList = bookingRepository.findNextOrderedBookingsByItemId((itemDtoBookingComments.getId()));
         List<Booking> lastBookingsList = bookingRepository.findLastOrderedBookingsByItemId(itemDtoBookingComments.getId());
-        if (!nextBookingsList.isEmpty()) {
-            BookingDto nextBooking = bookingMapper.toBookingDto(nextBookingsList.get(0));
-            itemDtoBookingComments.setNextBooking(nextBooking);
-        }
-        if (!lastBookingsList.isEmpty()) {
-            BookingDto lastBooking = bookingMapper.toBookingDto(lastBookingsList.get(0));
-            itemDtoBookingComments.setLastBooking(lastBooking);
+        if (!item.getOwner().getId().equals(userId)) {
+            nextBookingsList = null;
+            lastBookingsList = null;
+        } else {
+            if (!nextBookingsList.isEmpty()) {
+                BookingDto nextBooking = bookingMapper.toBookingDto(nextBookingsList.get(0));
+                itemDtoBookingComments.setNextBooking(nextBooking);
+            }
+            if (!lastBookingsList.isEmpty()) {
+                BookingDto lastBooking = bookingMapper.toBookingDto(lastBookingsList.get(0));
+                itemDtoBookingComments.setLastBooking(lastBooking);
+            }
         }
         return itemDtoBookingComments;
     }
@@ -110,9 +115,8 @@ public class ItemServiceImpl implements ItemService {
             }
 
             itemDtoList.add(itemDto);
-        }
-
-        return itemDtoList.stream().sorted(Comparator.comparing(ItemDtoBookingComments::getId)).collect(Collectors.toList());
+        };
+        return new ArrayList<>(itemDtoList);
     }
 
     @Override

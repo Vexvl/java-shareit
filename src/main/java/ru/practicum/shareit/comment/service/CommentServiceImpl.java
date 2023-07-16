@@ -2,6 +2,7 @@ package ru.practicum.shareit.comment.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.exception.NoBookingException;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -10,7 +11,6 @@ import ru.practicum.shareit.comment.mapper.CommentMapper;
 import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.comment.repository.CommentRepository;
 import ru.practicum.shareit.item.exception.AbsenceException;
-import ru.practicum.shareit.booking.exception.NoBookingException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -23,11 +23,11 @@ import java.util.List;
 @AllArgsConstructor
 public class CommentServiceImpl implements CommentService {
 
+    private final CommentMapper commentMapper;
+    private final BookingRepository bookingRepository;
     private UserRepository userRepository;
     private ItemRepository itemRepository;
-    private final CommentMapper commentMapper;
     private CommentRepository commentRepository;
-    private final BookingRepository bookingRepository;
 
     @Override
     public CommentDto addComment(Long ownerId, Long itemId, CommentDto commentDto) {

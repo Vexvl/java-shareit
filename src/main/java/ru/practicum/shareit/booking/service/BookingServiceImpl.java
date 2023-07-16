@@ -14,7 +14,10 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.item.exception.*;
+import ru.practicum.shareit.item.exception.AbsenceException;
+import ru.practicum.shareit.item.exception.AccessDeniedException;
+import ru.practicum.shareit.item.exception.ItemUnavailableException;
+import ru.practicum.shareit.item.exception.OwnerBookingException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -42,13 +45,13 @@ public class BookingServiceImpl implements BookingService {
     public BookingDto addBooking(BookingDto bookingDto, Long ownerId) {
         User user = userRepository.findById(ownerId).orElseThrow(() -> new AbsenceException("User not exists"));
         Item item = itemRepository.findById(bookingDto.getItemId()).orElseThrow(() -> new AbsenceException("Item not exists"));
-        if (!bookingDto.getStart().isBefore(bookingDto.getEnd())){
+        if (!bookingDto.getStart().isBefore(bookingDto.getEnd())) {
             throw new WrongDateBookingException("Wrong start/end of booking");
         }
         if (item.getOwner().getId().equals(ownerId)) {
             throw new OwnerBookingException("OwnerBookingException");
         }
-        if (!item.getAvailable()){
+        if (!item.getAvailable()) {
             throw new ItemUnavailableException("Item unavailable");
         }
         bookingDto.setStatus(BookingStatus.WAITING);
@@ -60,10 +63,10 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingDto editBookingStatus(Long ownerId, Long bookingId, String approved) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new AbsenceException("Booking not exists"));
-        if (!booking.getItem().getOwner().getId().equals(ownerId)){
+        if (!booking.getItem().getOwner().getId().equals(ownerId)) {
             throw new AccessDeniedException("Access denied");
         }
-        if (!booking.getStatus().equals(BookingStatus.WAITING)){
+        if (!booking.getStatus().equals(BookingStatus.WAITING)) {
             throw new InvalidStatusException("Invalid status");
         }
         switch (approved.toUpperCase()) {
@@ -82,7 +85,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingDto getById(Long ownerId, Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new AbsenceException("Booking not exists"));
         userRepository.findById(ownerId).orElseThrow(() -> new AbsenceException("User not exists"));
-        if(!booking.getItem().getOwner().getId().equals(ownerId) && !booking.getBooker().getId().equals(ownerId)){
+        if (!booking.getItem().getOwner().getId().equals(ownerId) && !booking.getBooker().getId().equals(ownerId)) {
             throw new AccessDeniedException("Access denied");
         }
         return bookingMapper.toBookingDto(booking);

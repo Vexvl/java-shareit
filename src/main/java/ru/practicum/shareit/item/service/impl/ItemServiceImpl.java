@@ -8,7 +8,6 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.comment.mapper.CommentMapper;
 import ru.practicum.shareit.comment.repository.CommentRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoBookingComments;
@@ -38,7 +37,6 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
     private final BookingMapper bookingMapper;
-    private final CommentMapper commentMapper;
 
     @Override
     @Transactional
@@ -114,7 +112,8 @@ public class ItemServiceImpl implements ItemService {
             }
 
             itemDtoList.add(itemDto);
-        };
+        }
+        ;
         return new ArrayList<>(itemDtoList);
     }
 

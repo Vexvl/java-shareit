@@ -19,9 +19,11 @@ public class Item {
     private Long id;
     private String name;
     private String description;
+    @Column(name = "is_available")
     private Boolean available;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", referencedColumnName = "id")
     private User owner;
+    @Column(name = "request_id")
     private Long request;
 }

@@ -31,13 +31,13 @@ public class ExceptionsHandler {
     @ExceptionHandler(NoPossessionException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleNoPossessionException(NoPossessionException e) {
-        return Map.of( "NoPossessionException", e.getMessage());
+        return Map.of("NoPossessionException", e.getMessage());
     }
 
     @ExceptionHandler(ItemUnavailableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleItemUnavailableException(ItemUnavailableException e) {
-        return Map.of( "ItemUnavailableException", e.getMessage());
+        return Map.of("ItemUnavailableException", e.getMessage());
     }
 
     @ExceptionHandler(OwnerBookingException.class)

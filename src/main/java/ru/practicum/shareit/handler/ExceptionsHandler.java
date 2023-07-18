@@ -19,66 +19,66 @@ public class ExceptionsHandler {
     @ExceptionHandler(AbsenceException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleAbsenceException(AbsenceException e) {
-        return Map.of("error", "Такого элемента нет", "errorMessage", "Ошибка на сервере");
+        return Map.of("Такого элемента нет", e.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleAccessDeniedException(AccessDeniedException e) {
-        return Map.of("error", "Вещь не принадлежит user", "errorMessage", "Ошибка на сервере");
+        return Map.of("Вещь не принадлежит user", e.getMessage());
     }
 
     @ExceptionHandler(NoPossessionException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleNoPossessionException(NoPossessionException e) {
-        return Map.of("error", "NoPossessionException", "errorMessage", "Ошибка на сервере");
+        return Map.of( "NoPossessionException", e.getMessage());
     }
 
     @ExceptionHandler(ItemUnavailableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleItemUnavailableException(ItemUnavailableException e) {
-        return Map.of("error", "ItemUnavailableException", "errorMessage", "Ошибка на сервере");
+        return Map.of( "ItemUnavailableException", e.getMessage());
     }
 
     @ExceptionHandler(OwnerBookingException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleOwnerBookingException(OwnerBookingException e) {
-        return Map.of("error", "OwnerBookingException", "errorMessage", "Ошибка на сервере");
+        return Map.of("OwnerBookingException", e.getMessage());
     }
 
     @ExceptionHandler(WrongDateBookingException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleAccessDeniedException(WrongDateBookingException e) {
-        return Map.of("error", "WrongDateBookingException", "errorMessage", "Ошибка на сервере");
+        return Map.of("WrongDateBookingException", e.getMessage());
     }
 
     @ExceptionHandler(InvalidRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleInvalidRequestException(InvalidRequestException e) {
-        return Map.of("error", "InvalidRequestException", "errorMessage", "Ошибка на сервере");
+        return Map.of("InvalidRequestException", e.getMessage());
     }
 
     @ExceptionHandler(EmailDuplicateException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.CONFLICT)
     public Map<String, String> handleEmailDuplicateException(EmailDuplicateException e) {
-        return Map.of("error", "EmailDuplicateException", "errorMessage", "Ошибка на сервере");
+        return Map.of("EmailDuplicateException", e.getMessage());
     }
 
     @ExceptionHandler(UnknownStatusException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleUnknownStatusException(UnknownStatusException e) {
-        return Map.of("error", "Unknown state: UNSUPPORTED_STATUS", "errorMessage", "Ошибка на сервере");
+        return Map.of("error", "Unknown state: UNSUPPORTED_STATUS", "errorMessage", "Ошибка");
     }
 
     @ExceptionHandler(NoBookingException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleEmailDuplicateException(NoBookingException e) {
-        return Map.of("error", "NoBookingException", "errorMessage", "Ошибка на сервере");
+    public Map<String, String> handleNoBookingException(NoBookingException e) {
+        return Map.of("NoBookingException", e.getMessage());
     }
 
     @ExceptionHandler(InvalidStatusException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleInvalidStatusException(InvalidStatusException e) {
-        return Map.of("error", "InvalidStatusException", "errorMessage", "Ошибка на сервере");
+        return Map.of("InvalidStatusException", e.getMessage());
     }
 }

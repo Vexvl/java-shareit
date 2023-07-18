@@ -22,6 +22,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -71,9 +72,12 @@ public class ItemServiceImpl implements ItemService {
     public ItemDtoBookingComments getItem(Long userId, Long itemId) {
         userRepository.findById(userId).orElseThrow(() -> new AbsenceException("User not exists"));
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new AbsenceException("Item not exists"));
-        ItemDtoBookingComments itemDtoBookingComments = itemMapper.toItemDtoBookingComments(item, commentRepository.findAllByItem(item));
-        List<Booking> nextBookingsList = bookingRepository.findNextOrderedBookingsByItemId((itemDtoBookingComments.getId()));
-        List<Booking> lastBookingsList = bookingRepository.findLastOrderedBookingsByItemId(itemDtoBookingComments.getId());
+        ItemDtoBookingComments itemDtoBookingComments = itemMapper.toItemDtoBookingComments(item,
+                commentRepository.findAllByItem(item));
+        List<Booking> nextBookingsList = bookingRepository
+                .findNextOrderedBookingsByItemId((itemDtoBookingComments.getId()));
+        List<Booking> lastBookingsList = bookingRepository.
+                findLastOrderedBookingsByItemId(itemDtoBookingComments.getId());
         if (!item.getOwner().getId().equals(userId)) {
             nextBookingsList = null;
             lastBookingsList = null;
@@ -96,25 +100,41 @@ public class ItemServiceImpl implements ItemService {
 
         List<ItemDtoBookingComments> itemDtoList = new ArrayList<>();
         List<Item> itemList = itemRepository.findByOwnerId(ownerId);
+
+        List<Long> itemIds = itemList.stream().map(Item::getId).collect(Collectors.toList());
+
+        List<Booking> nextBookingsList = bookingRepository.findNextOrderedBookingsByItemIds(itemIds);
+        List<Booking> lastBookingsList = bookingRepository.findLastOrderedBookingsByItemIds(itemIds);
+
+        Map<Long, List<BookingDto>> nextBookingsMap = nextBookingsList.stream()
+                .collect(Collectors.groupingBy(booking -> booking.getItem().getId(),
+                        Collectors.mapping(bookingMapper::toBookingDto, Collectors.toList())));
+
+        Map<Long, List<BookingDto>> lastBookingsMap = lastBookingsList.stream()
+                .collect(Collectors.groupingBy(booking -> booking.getItem().getId(),
+                        Collectors.mapping(bookingMapper::toBookingDto, Collectors.toList())));
+
         for (Item item : itemList) {
-            ItemDtoBookingComments itemDto = itemMapper.toItemDtoBookingComments(item, commentRepository.findAllByItem(item));
+            ItemDtoBookingComments itemDto = itemMapper.toItemDtoBookingComments(item,
+                    commentRepository.findAllByItem(item));
 
-            List<Booking> nextBookingsList = bookingRepository.findNextOrderedBookingsByItemId(itemDto.getId());
-            List<Booking> lastBookingsList = bookingRepository.findLastOrderedBookingsByItemId(itemDto.getId());
+            Long itemId = item.getId();
 
-            if (!nextBookingsList.isEmpty()) {
-                BookingDto nextBooking = bookingMapper.toBookingDto(nextBookingsList.get(0));
-                itemDto.setNextBooking(nextBooking);
+            if (nextBookingsMap.containsKey(itemId)) {
+                List<BookingDto> nextBookings = nextBookingsMap.get(itemId);
+                BookingDto firstNextBooking = nextBookings.get(0);
+                itemDto.setNextBooking(firstNextBooking);
             }
-            if (!lastBookingsList.isEmpty()) {
-                BookingDto lastBooking = bookingMapper.toBookingDto(lastBookingsList.get(0));
-                itemDto.setLastBooking(lastBooking);
+
+            if (lastBookingsMap.containsKey(itemId)) {
+                List<BookingDto> lastBookings = lastBookingsMap.get(itemId);
+                BookingDto firstLastBooking = lastBookings.get(0);
+                itemDto.setLastBooking(firstLastBooking);
             }
 
             itemDtoList.add(itemDto);
         }
-        ;
-        return new ArrayList<>(itemDtoList);
+        return itemDtoList;
     }
 
     @Override

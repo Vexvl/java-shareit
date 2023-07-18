@@ -34,7 +34,8 @@ public class CommentServiceImpl implements CommentService {
         User user = userRepository.findById(ownerId).orElseThrow(() -> new AbsenceException("User not exists"));
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new AbsenceException("Item not exists"));
 
-        List<Booking> bookings = bookingRepository.findByStatusAndBookerIdAndItemIdAndEndIsBefore(BookingStatus.APPROVED, ownerId, itemId, LocalDateTime.now());
+        List<Booking> bookings = bookingRepository.findByStatusAndBookerIdAndItemIdAndEndIsBefore(
+                BookingStatus.APPROVED, ownerId, itemId, LocalDateTime.now());
 
         if (bookings.isEmpty()) {
             throw new NoBookingException("No booking before comment");

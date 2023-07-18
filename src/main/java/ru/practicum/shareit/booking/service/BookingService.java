@@ -7,7 +7,7 @@ import java.util.List;
 public interface BookingService {
     BookingDto addBooking(BookingDto bookingDto, Long ownerId);
 
-    BookingDto editBookingStatus(Long ownerId, Long bookingId, String approved);
+    BookingDto editBookingStatus(Long ownerId, Long bookingId, Boolean approved);
 
     BookingDto getById(Long ownerId, Long bookingId);
 

@@ -20,12 +20,14 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    public BookingDto addBooking(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody @Valid BookingDto bookingDto) {
+    public BookingDto addBooking(@RequestHeader("X-Sharer-User-Id") Long ownerId,
+                                 @RequestBody @Valid BookingDto bookingDto) {
         return bookingService.addBooking(bookingDto, ownerId);
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingDto changeBookingStatus(@RequestHeader("X-Sharer-User-Id") Long ownerId, @PathVariable Long bookingId, @RequestParam String approved) {
+    public BookingDto changeBookingStatus(@RequestHeader("X-Sharer-User-Id") Long ownerId, @PathVariable Long bookingId,
+                                          @RequestParam Boolean approved) {
         return bookingService.editBookingStatus(ownerId, bookingId, approved);
     }
 
@@ -35,12 +37,14 @@ public class BookingController {
     }
 
     @GetMapping
-    public List<BookingDto> getByState(@RequestHeader("X-Sharer-User-Id") Long bookerId, @RequestParam(defaultValue = "ALL") String state) {
+    public List<BookingDto> getByState(@RequestHeader("X-Sharer-User-Id") Long bookerId,
+                                       @RequestParam(defaultValue = "ALL") String state) {
         return bookingService.getByState(bookerId, state);
     }
 
     @GetMapping("/owner")
-    public List<BookingDto> getByStateOwner(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestParam(defaultValue = "ALL") String state) {
+    public List<BookingDto> getByStateOwner(@RequestHeader("X-Sharer-User-Id") Long ownerId,
+                                            @RequestParam(defaultValue = "ALL") String state) {
         return bookingService.getByStateOwner(ownerId, state);
     }
 }

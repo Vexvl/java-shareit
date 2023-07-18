@@ -76,8 +76,8 @@ public class ItemServiceImpl implements ItemService {
                 commentRepository.findAllByItem(item));
         List<Booking> nextBookingsList = bookingRepository
                 .findNextOrderedBookingsByItemId((itemDtoBookingComments.getId()));
-        List<Booking> lastBookingsList = bookingRepository.
-                findLastOrderedBookingsByItemId(itemDtoBookingComments.getId());
+        List<Booking> lastBookingsList = bookingRepository
+                .findLastOrderedBookingsByItemId(itemDtoBookingComments.getId());
         if (!item.getOwner().getId().equals(userId)) {
             nextBookingsList = null;
             lastBookingsList = null;

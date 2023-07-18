@@ -19,12 +19,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             " ORDER BY b.end ASC")
     List<Booking> findNextOrderedBookingsByItemId(Long itemId);
 
-    @Query("SELECT b FROM Booking b WHERE b.item.id IN (:itemIds) AND b.start < CURRENT_TIMESTAMP AND b.status = 'APPROVED' " +
-            "ORDER BY b.end DESC")
+    @Query("SELECT b FROM Booking b WHERE b.item.id IN (:itemIds) AND b.start < CURRENT_TIMESTAMP " +
+            "AND b.status = 'APPROVED' " + "ORDER BY b.end DESC")
     List<Booking> findLastOrderedBookingsByItemIds(@Param("itemIds") List<Long> itemIds);
 
-    @Query("SELECT b FROM Booking b WHERE b.item.id IN (:itemIds) AND b.start > CURRENT_TIMESTAMP AND b.status = 'APPROVED' " +
-            "ORDER BY b.end ASC")
+    @Query("SELECT b FROM Booking b WHERE b.item.id IN (:itemIds) AND b.start > CURRENT_TIMESTAMP " +
+            "AND b.status = 'APPROVED' " + "ORDER BY b.end ASC")
     List<Booking> findNextOrderedBookingsByItemIds(@Param("itemIds") List<Long> itemIds);
 
     List<Booking> findByItemOwnerIdAndStatus(Long ownerId, BookingStatus status);

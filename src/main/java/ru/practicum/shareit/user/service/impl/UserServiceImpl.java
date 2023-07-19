@@ -1,19 +1,22 @@
 package ru.practicum.shareit.user.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.item.exception.AbsenceException;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.exception.EmailDuplicateException;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
+import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
@@ -22,30 +25,51 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
+    @Transactional
     public UserDto addUser(UserDto userDto) {
-        User user = userMapper.toUser(userDto);
-        return userMapper.toUserDto(userRepository.addUser(user));
+        try {
+            User user = userRepository.save(userMapper.toUser(userDto));
+            return userMapper.toUserDto(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new EmailDuplicateException("Email exists");
+        }
     }
 
     @Override
+    @Transactional
     public UserDto getUser(Long ownerId) {
-        User requestedUser = userRepository.getUser(ownerId);
-        return userMapper.toUserDto(requestedUser);
+        User user = userRepository.findById(ownerId).orElseThrow(() -> new AbsenceException("User not exists"));
+        return userMapper.toUserDto(user);
     }
 
     @Override
+    @Transactional
     public List<UserDto> getAllUsers() {
-        return userRepository.getAllUsers().values().stream().map(userMapper::toUserDto).collect(Collectors.toList());
+        return userRepository.findAll().stream().map(userMapper::toUserDto).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional
     public UserDto editUser(Long ownerId, UserDto userDto) {
-        User user = userMapper.toUser(userDto);
-        return userMapper.toUserDto(userRepository.editUser(ownerId, user));
+        User user = userRepository.findById(ownerId).orElseThrow(() -> new AbsenceException("User not exists"));
+        User newUser = userMapper.toUser(userDto);
+        if (newUser.getEmail() != null) {
+            Optional<User> userWithSameEmail = userRepository.findByEmail(newUser.getEmail());
+            if (userWithSameEmail.isPresent() && !userWithSameEmail.get().getId().equals(ownerId)) {
+                throw new EmailDuplicateException("Email exists");
+            } else {
+                user.setEmail(newUser.getEmail());
+            }
+        }
+        if (newUser.getName() != null) {
+            user.setName(newUser.getName());
+        }
+        return userMapper.toUserDto(userRepository.save(user));
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long removeId) {
-        userRepository.deleteUser(removeId);
+        userRepository.deleteById(removeId);
     }
 }

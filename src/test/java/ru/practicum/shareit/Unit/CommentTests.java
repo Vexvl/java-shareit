@@ -13,13 +13,10 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.comment.repository.CommentRepository;
-import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -31,12 +28,6 @@ public class CommentTests {
 
     @Mock
     private BookingRepository bookingRepository;
-
-    @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private ItemRepository itemRepository;
 
     @Mock
     private CommentRepository commentRepository;
@@ -63,20 +54,24 @@ public class CommentTests {
                 .text(commentText)
                 .build();
 
-        List<Booking> bookings = new ArrayList<>();
-        bookings.add(Booking.builder()
+        Booking booking = Booking.builder()
                 .id(1L)
                 .status(BookingStatus.APPROVED)
                 .booker(user)
                 .item(item)
                 .start(LocalDateTime.now().minusHours(2))
                 .end(LocalDateTime.now().minusHours(1))
-                .build());
+                .build();
 
-        when(userRepository.findById(ownerId)).thenReturn(Optional.of(user));
-        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-        when(bookingRepository.findByStatusAndBookerIdAndItemIdAndEndIsBefore(any(), any(), any(), any()))
-                .thenReturn(bookings);
+        List<Booking> bookings = new ArrayList<>();
+        bookings.add(booking);
+
+        when(bookingRepository.findByStatusAndBookerIdAndItemIdAndEndIsBefore(
+                eq(BookingStatus.APPROVED),
+                eq(ownerId),
+                eq(itemId),
+                any(LocalDateTime.class)
+        )).thenReturn(bookings);
 
         Comment comment = Comment.builder()
                 .text(commentText)
@@ -88,5 +83,13 @@ public class CommentTests {
         when(commentMapper.toComment(commentDto, item, user)).thenReturn(comment);
         when(commentRepository.save(comment)).thenReturn(comment);
 
+        verify(bookingRepository, times(1)).findByStatusAndBookerIdAndItemIdAndEndIsBefore(
+                eq(BookingStatus.APPROVED),
+                eq(ownerId),
+                eq(itemId),
+                any(LocalDateTime.class)
+        );
+        verify(commentMapper, times(1)).toComment(commentDto, item, user);
+        verify(commentRepository, times(1)).save(comment);
     }
 }

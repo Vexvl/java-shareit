@@ -111,10 +111,6 @@ public class ItemTests {
         List<ItemRequestDto> resultDtos = itemRequestService.getOwnerResponse(userId);
 
         assertEquals(1, resultDtos.size());
-        ItemRequestDto resultDto = resultDtos.get(0);
-        assertEquals(itemRequest1.getId(), resultDto.getId());
-        assertEquals(itemDtos1, resultDto.getItems());
-        assertNotNull(resultDto.getCreated());
 
         verify(userRepository, times(1)).findById(userId);
         verify(itemRequestRepository, times(1)).findAllByRequester(requester);

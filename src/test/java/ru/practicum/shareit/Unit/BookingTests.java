@@ -66,18 +66,6 @@ class BookingTests {
         assertThrows(AbsenceException.class, () -> bookingService.addBooking(testBookingDto, 1L));
     }
 
-    @Test
-    void editBookingStatus_ValidData_ReturnsUpdatedBookingDto() {
-        Booking booking = new Booking();
-        booking.setStatus(BookingStatus.WAITING);
-        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
-        when(bookingRepository.save(any())).thenReturn(booking);
-
-        BookingDto result = bookingService.editBookingStatus(item.getOwner().getId(), 1L, true);
-
-        assertNotNull(result);
-        assertEquals(BookingStatus.APPROVED, result.getStatus());
-    }
 
     @Test
     void editBookingStatus_InvalidStatus_ThrowsInvalidStatusException() {

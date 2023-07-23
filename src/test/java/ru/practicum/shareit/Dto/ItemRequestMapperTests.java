@@ -53,7 +53,7 @@ public class ItemRequestMapperTests {
 
         assertEquals(1L, itemRequestDto.getId().longValue());
         assertEquals("Item request description", itemRequestDto.getDescription());
-        assertEquals(1L, itemRequestDto.getRequester_id().longValue());
+        assertEquals(1L, itemRequestDto.getRequester().longValue());
         assertEquals(itemsDto, itemRequestDto.getItems());
     }
 
@@ -68,7 +68,7 @@ public class ItemRequestMapperTests {
         ItemRequestDto itemRequestDto = ItemRequestDto.builder()
                 .id(1L)
                 .description("Item request description")
-                .requester_id(1L)
+                .requester(1L)
                 .created(LocalDateTime.now())
                 .build();
 

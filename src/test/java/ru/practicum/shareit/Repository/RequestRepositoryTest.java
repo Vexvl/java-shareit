@@ -16,11 +16,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 public class RequestRepositoryTest {
+    Pageable pageable = PageRequest.of(0 / 10, 10);
     @Autowired
     private TestEntityManager em;
     @Autowired
     private ItemRequestRepository itemRequestRepository;
-    Pageable pageable = PageRequest.of(0 / 10, 10);
 
     @Test
     void findAllByRequesterTest() {

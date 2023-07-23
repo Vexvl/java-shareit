@@ -19,15 +19,11 @@ import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.when;
 
 class BookingTests {
-
-    @Mock
-    private BookingRepository bookingRepository;
-    @InjectMocks
-    private BookingServiceImpl bookingService;
 
     private final User user = new User(1L, "user1", "user@user.com");
     private final Item item = new Item(2L, "Дрель", "Простая дрель", true, user, null);
@@ -41,6 +37,10 @@ class BookingTests {
             new UserDto(1L, "user1", "user@user.com"),
             new ItemDto(2L, "Дрель", "Простая дрель", true, null)
     );
+    @Mock
+    private BookingRepository bookingRepository;
+    @InjectMocks
+    private BookingServiceImpl bookingService;
 
     @BeforeEach
     void setUp() {

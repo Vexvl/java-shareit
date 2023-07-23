@@ -14,17 +14,17 @@ import java.util.List;
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
 
-    private final ItemRequestService ItemRequestService;
+    private final ItemRequestService itemRequestService;
 
     @PostMapping
     public ItemRequestDto addItemRequest(@RequestHeader("X-Sharer-User-Id") Long ownerId,
                                          @RequestBody @Valid ItemRequestDto itemRequestDto) {
-        return ItemRequestService.addItemRequest(itemRequestDto, ownerId);
+        return itemRequestService.addItemRequest(itemRequestDto, ownerId);
     }
 
     @GetMapping
     public List<ItemRequestDto> getAllUserItem(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
-        return ItemRequestService.getOwnerResponse(ownerId);
+        return itemRequestService.getOwnerResponse(ownerId);
     }
 
     @GetMapping("/all")
@@ -33,12 +33,12 @@ public class ItemRequestController {
                                                      @Positive Integer from,
                                                      @RequestParam(required = false, defaultValue = "10")
                                                      @Positive Integer size) {
-        return ItemRequestService.getAllNotOwner(ownerId, from, size);
+        return itemRequestService.getAllNotOwner(ownerId, from, size);
     }
 
     @GetMapping("/{requestId}")
     public ItemRequestDto getItemRequest(@RequestHeader("X-Sharer-User-Id") Long ownerId,
                                          @PathVariable Long requestId) {
-        return ItemRequestService.getItemRequestById(ownerId, requestId);
+        return itemRequestService.getItemRequestById(ownerId, requestId);
     }
 }

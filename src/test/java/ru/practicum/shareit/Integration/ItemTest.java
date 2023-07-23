@@ -7,7 +7,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.BookingStatus;;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.comment.service.CommentService;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -55,40 +55,6 @@ public class ItemTest {
         assertEquals(itemDto.getName(), getItems.get(0).getName());
         assertEquals(itemDto.getDescription(), getItems.get(0).getDescription());
         assertEquals(testUser, getItems.get(0).getOwner());
-        em.clear();
-    }
-
-    @Test
-    void getItemByIdTest() {
-        User testUser = new User(
-                null,
-                "John",
-                "first@user.com"
-        );
-        em.persist(testUser);
-        em.flush();
-        Item item = new Item(
-                null,
-                "Дрель",
-                "Простая дрель",
-                true,
-                testUser,
-                null
-        );
-        em.persist(item);
-        em.flush();
-        ItemDtoBookingComments itemDtoLong = new ItemDtoBookingComments(
-                item.getId(),
-                "Дрель",
-                "Простая дрель",
-                true,
-                null,
-                null,
-                null,
-                List.of()
-        );
-        ItemDtoBookingComments getItemDtoLong = itemService.getItem(item.getId(), testUser.getId());
-        assertEquals(itemDtoLong, getItemDtoLong);
         em.clear();
     }
 

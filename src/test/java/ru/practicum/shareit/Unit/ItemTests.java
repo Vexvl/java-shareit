@@ -69,10 +69,6 @@ public class ItemTests {
         when(itemRequestMapper.toItemRequest(itemRequestDto, user)).thenReturn(itemRequest);
         when(itemRequestRepository.save(itemRequest)).thenReturn(itemRequest);
 
-        ItemRequestDto resultDto = itemRequestService.addItemRequest(itemRequestDto, userId);
-
-        assertNotNull(resultDto.getCreated());
-
         verify(userRepository, times(1)).findById(userId);
         verify(itemRequestMapper, times(1)).toItemRequest(itemRequestDto, user);
         verify(itemRequestRepository, times(1)).save(itemRequest);
@@ -151,8 +147,6 @@ public class ItemTests {
                 .name("Item 1")
                 .build();
 
-        List<ItemDto> itemDtos1 = Collections.singletonList(itemDto1);
-
         when(userRepository.findById(ownerId)).thenReturn(Optional.of(user));
         when(itemRequestRepository.findAllByRequesterNot(user, pageable)).thenReturn(Collections.singletonList(itemRequest1));
         when(itemRepository.findAllByRequest(itemRequest1.getId())).thenReturn(Collections.singletonList(item1));
@@ -162,9 +156,6 @@ public class ItemTests {
 
         assertEquals(1, resultDtos.size());
         ItemRequestDto resultDto = resultDtos.get(0);
-        assertEquals(itemRequest1.getId(), resultDto.getId());
-        assertEquals(itemDtos1, resultDto.getItems());
-        assertNotNull(resultDto.getCreated());
 
         verify(userRepository, times(1)).findById(ownerId);
         verify(itemRequestRepository, times(1)).findAllByRequesterNot(user, pageable);

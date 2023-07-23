@@ -8,8 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.exception.InvalidStatusException;
-import ru.practicum.shareit.booking.exception.UnknownStatusException;
+import ru.practicum.shareit.booking.exception.UnsupportedStatusException;
 import ru.practicum.shareit.booking.exception.WrongDateBookingException;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
@@ -70,7 +69,7 @@ public class BookingServiceImpl implements BookingService {
             throw new AccessDeniedException("Access denied");
         }
         if (!booking.getStatus().equals(BookingStatus.WAITING)) {
-            throw new InvalidStatusException("Invalid status");
+            throw new UnsupportedStatusException("Invalid status");
         }
         if (approved) {
             booking.setStatus(BookingStatus.APPROVED);
@@ -120,7 +119,7 @@ public class BookingServiceImpl implements BookingService {
                 bookingList = bookingRepository.findByBookerId(bookerId, pageable);
                 break;
             default:
-                throw new InvalidStatusException("Unknown state: UNSUPPORTED_STATUS");
+                throw new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS");
         }
         return bookingList.stream().map(bookingMapper::toBookingDto).collect(Collectors.toList());
     }
@@ -157,7 +156,7 @@ public class BookingServiceImpl implements BookingService {
                 bookingList = bookingRepository.findByItemOwnerId(ownerId, pageable);
                 break;
             default:
-                throw new InvalidStatusException("Unknown state: UNSUPPORTED_STATUS");
+                throw new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS");
         }
         return bookingList.stream().map(bookingMapper::toBookingDto).collect(Collectors.toList());
     }
@@ -166,7 +165,7 @@ public class BookingServiceImpl implements BookingService {
         try {
             return BookingState.valueOf(state.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new UnknownStatusException("Unknown state: UNSUPPORTED_STATUS");
+            throw new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS");
         }
     }
 }

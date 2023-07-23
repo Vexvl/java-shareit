@@ -4,9 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.shareit.booking.exception.InvalidStatusException;
 import ru.practicum.shareit.booking.exception.NoBookingException;
-import ru.practicum.shareit.booking.exception.UnknownStatusException;
+import ru.practicum.shareit.booking.exception.UnsupportedStatusException;
 import ru.practicum.shareit.booking.exception.WrongDateBookingException;
 import ru.practicum.shareit.item.exception.*;
 import ru.practicum.shareit.user.exception.EmailDuplicateException;
@@ -64,9 +63,9 @@ public class ExceptionsHandler {
         return Map.of("EmailDuplicateException", e.getMessage());
     }
 
-    @ExceptionHandler(UnknownStatusException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, String> handleUnknownStatusException(UnknownStatusException e) {
+    @ExceptionHandler(UnsupportedStatusException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleUnknownStatusException(UnsupportedStatusException e) {
         return Map.of("error", "Unknown state: UNSUPPORTED_STATUS", "errorMessage", "Ошибка");
     }
 
@@ -74,11 +73,5 @@ public class ExceptionsHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleNoBookingException(NoBookingException e) {
         return Map.of("NoBookingException", e.getMessage());
-    }
-
-    @ExceptionHandler(InvalidStatusException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleInvalidStatusException(InvalidStatusException e) {
-        return Map.of("InvalidStatusException", e.getMessage());
     }
 }

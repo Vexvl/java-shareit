@@ -72,7 +72,7 @@ public class ItemRequestControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemRequestDto.getId()), Long.class))
                 .andExpect(jsonPath("$.description", is(itemRequestDto.getDescription())))
-                .andExpect(jsonPath("$.requester_id", is(itemRequestDto.getRequester()), Long.class))
+                .andExpect(jsonPath("$.requester", is(itemRequestDto.getRequester()), Long.class))
                 .andExpect(jsonPath("$.created").isNotEmpty())
                 .andExpect(jsonPath("$.items", hasSize(1)));
     }
@@ -87,7 +87,7 @@ public class ItemRequestControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(itemRequestDto.getId()), Long.class))
                 .andExpect(jsonPath("$[0].description", is(itemRequestDto.getDescription())))
-                .andExpect(jsonPath("$[0].requester_id", is(itemRequestDto.getRequester()), Long.class))
+                .andExpect(jsonPath("$[0].requester", is(itemRequestDto.getRequester()), Long.class))
                 .andExpect(jsonPath("$[0].created").isNotEmpty())
                 .andExpect(jsonPath("$[0].items", hasSize(1)));
     }
@@ -102,7 +102,7 @@ public class ItemRequestControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(itemRequestDto.getId()), Long.class))
                 .andExpect(jsonPath("$[0].description", is(itemRequestDto.getDescription())))
-                .andExpect(jsonPath("$[0].requester_id", is(itemRequestDto.getRequester()), Long.class))
+                .andExpect(jsonPath("$[0].requester", is(itemRequestDto.getRequester()), Long.class))
                 .andExpect(jsonPath("$[0].created").isNotEmpty())
                 .andExpect(jsonPath("$[0].items", hasSize(1)));
     }
@@ -117,7 +117,7 @@ public class ItemRequestControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemRequestDto.getId()), Long.class))
                 .andExpect(jsonPath("$.description", is(itemRequestDto.getDescription())))
-                .andExpect(jsonPath("$.requester_id", is(itemRequestDto.getRequester()), Long.class))
+                .andExpect(jsonPath("$.requester", is(itemRequestDto.getRequester()), Long.class))
                 .andExpect(jsonPath("$.created").isNotEmpty())
                 .andExpect(jsonPath("$.items", hasSize(1)));
     }

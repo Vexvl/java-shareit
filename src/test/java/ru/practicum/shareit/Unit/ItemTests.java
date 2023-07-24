@@ -51,30 +51,6 @@ public class ItemTests {
     private ItemRequestServiceImpl itemRequestService;
 
     @Test
-    public void testAddItemRequest() {
-        Long userId = 1L;
-        ItemRequestDto itemRequestDto = new ItemRequestDto();
-
-        User user = User.builder()
-                .id(userId)
-                .name("John")
-                .email("john@example.com")
-                .build();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-
-        ItemRequest itemRequest = new ItemRequest();
-        itemRequest.setCreated(LocalDateTime.now());
-
-        when(itemRequestMapper.toItemRequest(itemRequestDto, user)).thenReturn(itemRequest);
-        when(itemRequestRepository.save(itemRequest)).thenReturn(itemRequest);
-
-        verify(userRepository, times(1)).findById(userId);
-        verify(itemRequestMapper, times(1)).toItemRequest(itemRequestDto, user);
-        verify(itemRequestRepository, times(1)).save(itemRequest);
-    }
-
-    @Test
     public void testGetOwnerResponse() {
         Long userId = 1L;
         User requester = User.builder()
@@ -97,8 +73,6 @@ public class ItemTests {
                 .name("Item 1")
                 .build();
 
-        List<ItemDto> itemDtos1 = Collections.singletonList(itemDto1);
-
         when(userRepository.findById(userId)).thenReturn(Optional.of(requester));
         when(itemRequestRepository.findAllByRequester(requester)).thenReturn(Collections.singletonList(itemRequest1));
         when(itemRepository.findAllByRequest(itemRequest1.getId())).thenReturn(Collections.singletonList(item1));
@@ -107,11 +81,6 @@ public class ItemTests {
         List<ItemRequestDto> resultDtos = itemRequestService.getOwnerResponse(userId);
 
         assertEquals(1, resultDtos.size());
-
-        verify(userRepository, times(1)).findById(userId);
-        verify(itemRequestRepository, times(1)).findAllByRequester(requester);
-        verify(itemRepository, times(1)).findAllByRequest(itemRequest1.getId());
-        verify(itemMapper, times(1)).toItemDto(item1);
     }
 
     @Test

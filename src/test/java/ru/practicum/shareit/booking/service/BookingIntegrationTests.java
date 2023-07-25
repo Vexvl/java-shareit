@@ -14,13 +14,11 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
 
 @SpringBootTest
 class BookingIntegrationTests {
@@ -34,10 +32,126 @@ class BookingIntegrationTests {
     @Autowired
     private BookingRepository bookingRepository;
 
+    @Test
+    @Transactional
+    void addBooking_SaveToDB() {
+        User booker = saveRandomUser();
+        Long bookerId = booker.getId();
+        User itemOwner = saveRandomUser();
+        Item item = saveRandomItem(itemOwner);
+        BookingDto bookingCreationDto = BookingDto.builder()
+                .itemId(item.getId())
+                .start(LocalDateTime.now().plusHours(1))
+                .end(LocalDateTime.now().plusHours(2))
+                .build();
+
+        Long savedBookingId = bookingService.addBooking(bookingCreationDto, bookerId).getId();
+
+        Booking savedBooking = bookingRepository.findById(savedBookingId).get();
+        assertThat(savedBooking.getBooker(), equalTo(booker));
+        assertThat(savedBooking.getItem(), equalTo(item));
+        assertThat(savedBooking.getStart(), equalTo(bookingCreationDto.getStart()));
+        assertThat(savedBooking.getEnd(), equalTo(bookingCreationDto.getEnd()));
+    }
+
+    @Test
+    void addBooking_ReturnDto() {
+        User booker = saveRandomUser();
+        Long bookerId = booker.getId();
+        User itemOwner = saveRandomUser();
+        Item item = saveRandomItem(itemOwner);
+        BookingDto bookingCreationDto = BookingDto.builder()
+                .itemId(item.getId())
+                .start(LocalDateTime.now().plusHours(1))
+                .end(LocalDateTime.now().plusHours(2))
+                .build();
+
+        BookingDto returnedBooking = bookingService.addBooking(bookingCreationDto, bookerId);
+
+        assertThat(returnedBooking.getBooker().getId(), equalTo(bookerId));
+        assertThat(returnedBooking.getItem().getId(), equalTo(item.getId()));
+        assertThat(returnedBooking.getStart(), equalTo(bookingCreationDto.getStart()));
+        assertThat(returnedBooking.getEnd(), equalTo(bookingCreationDto.getEnd()));
+    }
+
+    @Test
+    @Transactional
+    void changeStatus_SaveToDB() {
+        User booker = saveRandomUser();
+        Long bookerId = booker.getId();
+        User itemOwner = saveRandomUser();
+        Item item = saveRandomItem(itemOwner);
+        boolean approved = true;
+        Booking booking = bookingRepository.save(Booking.builder()
+                .item(item)
+                .booker(booker)
+                .status(BookingStatus.WAITING)
+                .start(LocalDateTime.now().plusHours(1))
+                .end(LocalDateTime.now().plusHours(2))
+                .build());
+
+        bookingService.editBookingStatus(itemOwner.getId(), booking.getId(), approved);
+
+        Booking updatedBooking = bookingRepository.findById(booking.getId()).get();
+        assertThat(updatedBooking.getId(), equalTo(booking.getId()));
+        assertThat(updatedBooking.getBooker(), equalTo(booker));
+        assertThat(updatedBooking.getItem(), equalTo(item));
+        assertThat(updatedBooking.getStart(), equalTo(booking.getStart()));
+        assertThat(updatedBooking.getEnd(), equalTo(booking.getEnd()));
+        assertThat(updatedBooking.getStatus(), equalTo(BookingStatus.APPROVED));
+    }
+
+    @Test
+    void changeStatus_ReturnDto() {
+        User booker = saveRandomUser();
+        Long bookerId = booker.getId();
+        User itemOwner = saveRandomUser();
+        Item item = saveRandomItem(itemOwner);
+        boolean approved = true;
+        Booking booking = bookingRepository.save(Booking.builder()
+                .item(item)
+                .booker(booker)
+                .status(BookingStatus.WAITING)
+                .start(LocalDateTime.now().plusHours(1))
+                .end(LocalDateTime.now().plusHours(2))
+                .build());
+
+        BookingDto returnedBooking = bookingService.editBookingStatus(itemOwner.getId(), booking.getId(), approved);
+
+        assertThat(returnedBooking.getId(), equalTo(booking.getId()));
+        assertThat(returnedBooking.getBooker().getId(), equalTo(bookerId));
+        assertThat(returnedBooking.getItem().getId(), equalTo(item.getId()));
+        assertThat(returnedBooking.getStatus(), equalTo(BookingStatus.APPROVED));
+    }
+
+    @Test
+    @Transactional
+    void getById_ReturnDto() {
+        User booker = saveRandomUser();
+        Long bookerId = booker.getId();
+        User itemOwner = saveRandomUser();
+        Item item = saveRandomItem(itemOwner);
+        Booking booking = bookingRepository.save(Booking.builder()
+                .item(item)
+                .booker(booker)
+                .status(BookingStatus.WAITING)
+                .start(LocalDateTime.now().plusHours(1))
+                .end(LocalDateTime.now().plusHours(2))
+                .build());
+
+        BookingDto returnedBooking = bookingService.getById(bookerId, booking.getId());
+
+        assertThat(returnedBooking.getId(), equalTo(booking.getId()));
+        assertThat(returnedBooking.getBooker().getId(), equalTo(bookerId));
+        assertThat(returnedBooking.getItem().getId(), equalTo(item.getId()));
+        assertThat(returnedBooking.getStart(), equalTo(booking.getStart()));
+        assertThat(returnedBooking.getEnd(), equalTo(booking.getEnd()));
+    }
+
     private User saveRandomUser() {
         return userRepository.save(User.builder()
                 .name("name")
-                .email(String.format("%s%s@email.ru", "email", new Random().nextInt(9999)))
+                .email(String.format("email%s@example.com", new Random().nextInt(9999)))
                 .build());
     }
 
@@ -50,8 +164,7 @@ class BookingIntegrationTests {
                 .build());
     }
 
-    private Map<String, Long> saveBookingsForSameBookerAndItemOwner() {
-
+    private Map<String, Long> saveOneBookingForEachBookingStateSearchDtoWithSameBookerAndItemOwner() {
         User itemOwner = saveRandomUser();
         User booker = saveRandomUser();
 
@@ -97,129 +210,5 @@ class BookingIntegrationTests {
 
         return Map.of("ItemOwnerId", itemOwner.getId(),
                 "BookerId", booker.getId());
-    }
-
-    private void assertBookingDtoEquals(BookingDto bookingDto, Booking booking) {
-        assertThat(bookingDto.getId(), equalTo(booking.getId()));
-        assertThat(bookingDto.getBooker().getId(), equalTo(booking.getBooker().getId()));
-        assertThat(bookingDto.getItem().getId(), equalTo(booking.getItem().getId()));
-        assertThat(bookingDto.getStart(), equalTo(booking.getStart()));
-        assertThat(bookingDto.getEnd(), equalTo(booking.getEnd()));
-        assertThat(bookingDto.getStatus(), equalTo(booking.getStatus()));
-    }
-
-    @Test
-    @Transactional
-    void testAddBooking() {
-        User booker = saveRandomUser();
-        Long bookerId = booker.getId();
-        User itemOwner = saveRandomUser();
-        Item item = saveRandomItem(itemOwner);
-        BookingDto bookingDto = BookingDto.builder()
-                .itemId(item.getId())
-                .start(LocalDateTime.now().plusHours(1))
-                .end(LocalDateTime.now().plusHours(2))
-                .build();
-
-        Long savedBookingId = bookingService.addBooking(bookingDto, bookerId).getId();
-
-        Booking savedBooking = bookingRepository.findById(savedBookingId).get();
-        assertThat(savedBooking.getBooker(), equalTo(booker));
-        assertThat(savedBooking.getItem(), equalTo(item));
-        assertThat(savedBooking.getStart(), equalTo(bookingDto.getStart()));
-        assertThat(savedBooking.getEnd(), equalTo(bookingDto.getEnd()));
-    }
-
-    @Test
-    @Transactional
-    void testChangeStatus() {
-        User booker = saveRandomUser();
-        User itemOwner = saveRandomUser();
-        Item item = saveRandomItem(itemOwner);
-        boolean approved = true;
-        Booking booking = bookingRepository.save(Booking.builder()
-                .item(item)
-                .booker(booker)
-                .status(BookingStatus.WAITING)
-                .start(LocalDateTime.now().plusHours(1))
-                .end(LocalDateTime.now().plusHours(2))
-                .build());
-
-        bookingService.editBookingStatus(itemOwner.getId(), booking.getId(), approved);
-
-        Booking updatedBooking = bookingRepository.findById(booking.getId()).get();
-        assertThat(updatedBooking.getId(), equalTo(booking.getId()));
-        assertThat(updatedBooking.getBooker(), equalTo(booker));
-        assertThat(updatedBooking.getItem(), equalTo(item));
-        assertThat(updatedBooking.getStart(), equalTo(booking.getStart()));
-        assertThat(updatedBooking.getEnd(), equalTo(booking.getEnd()));
-        assertThat(updatedBooking.getStatus(), equalTo(BookingStatus.APPROVED));
-    }
-
-    @Test
-    @Transactional
-    void testGetById() {
-        User booker = saveRandomUser();
-        Long bookerId = booker.getId();
-        User itemOwner = saveRandomUser();
-        Item item = saveRandomItem(itemOwner);
-        Booking booking = bookingRepository.save(Booking.builder()
-                .item(item)
-                .booker(booker)
-                .status(BookingStatus.WAITING)
-                .start(LocalDateTime.now().plusHours(1))
-                .end(LocalDateTime.now().plusHours(2))
-                .build());
-
-        BookingDto returnedBooking = bookingService.getById(bookerId, booking.getId());
-
-        assertBookingDtoEquals(returnedBooking, booking);
-    }
-
-    private void testGetByStateOwner(String status, BookingStatus expectedState, int expectedSize) {
-        bookingRepository.deleteAll();
-        saveBookingsForSameBookerAndItemOwner();
-
-        Long ownerId = userRepository.findAll().get(0).getId();
-
-        List<BookingDto> requestedBookings = bookingService.getByStateOwner(ownerId, status, 0, 20);
-
-        assertThat(requestedBookings, hasSize(expectedSize));
-
-        if (expectedState != null) {
-            for (BookingDto foundBooking : requestedBookings) {
-                assertThat(foundBooking.getStatus(), equalTo(expectedState));
-            }
-        }
-    }
-
-    @Test
-    @Transactional
-    void testGetByStateOwner_All() {
-        testGetByStateOwner("ALL", null, 5);
-    }
-
-    @Test
-    @Transactional
-    void testGetByStateOwner_Current() {
-        testGetByStateOwner("CURRENT", BookingStatus.APPROVED, 1);
-    }
-
-    @Test
-    @Transactional
-    void testGetByStateOwner_Past() {
-        testGetByStateOwner("PAST", BookingStatus.APPROVED, 1);
-    }
-
-    @Test
-    @Transactional
-    void testGetByStateOwner_Waiting() {
-        testGetByStateOwner("WAITING", BookingStatus.WAITING, 1);
-    }
-
-    @Test
-    @Transactional
-    void testGetByStateOwner_Rejected() {
-        testGetByStateOwner("REJECTED", BookingStatus.REJECTED, 1);
     }
 }

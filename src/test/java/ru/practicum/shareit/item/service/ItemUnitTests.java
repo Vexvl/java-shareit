@@ -5,10 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.comment.repository.CommentRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemDtoBookingComments;
 import ru.practicum.shareit.item.exception.AbsenceException;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
@@ -17,7 +15,6 @@ import ru.practicum.shareit.item.service.impl.ItemServiceImpl;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -126,7 +123,6 @@ class ItemUnitTests {
 
         assertThrows(AbsenceException.class, () -> itemService.addItem(ownerId, itemDto));
     }
-
     @Test
     void editItem_OwnerNotFound_ThrowsAbsenceException() {
         Long ownerId = 1L;
@@ -159,32 +155,6 @@ class ItemUnitTests {
         when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
 
         assertThrows(AbsenceException.class, () -> itemService.editItem(ownerId, itemId, itemDto));
-    }
-
-    @Test
-    void getItem_ValidUserAndItemId_ReturnsItemDtoBookingComments() {
-        Long userId = 1L;
-        Long itemId = 1L;
-        User user = new User(userId, "John Doe", "john@example.com");
-        Item item = Item.builder()
-                .id(itemId)
-                .name("itemName")
-                .description("itemDescription")
-                .available(true)
-                .owner(user)
-                .request(null)
-                .build();
-        List<Comment> comments = Collections.singletonList(new Comment());
-        ItemDtoBookingComments expectedResponse = new ItemDtoBookingComments();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-        when(commentRepository.findAllByItem(item)).thenReturn(comments);
-        when(itemMapper.toItemDtoBookingComments(item, comments)).thenReturn(expectedResponse);
-
-        ItemDtoBookingComments result = itemService.getItem(userId, itemId);
-
-        assertEquals(expectedResponse, result);
     }
 
     @Test

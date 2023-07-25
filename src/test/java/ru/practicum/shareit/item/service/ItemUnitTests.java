@@ -1,184 +1,220 @@
 package ru.practicum.shareit.item.service;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.comment.model.Comment;
+import ru.practicum.shareit.comment.repository.CommentRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoBookingComments;
+import ru.practicum.shareit.item.exception.AbsenceException;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
-import ru.practicum.shareit.request.mapper.ItemRequestMapper;
-import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.request.repository.ItemRequestRepository;
-import ru.practicum.shareit.request.service.impl.ItemRequestServiceImpl;
+import ru.practicum.shareit.item.service.impl.ItemServiceImpl;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
-public class ItemUnitTests {
 
-    @Mock
-    private ItemRequestRepository itemRequestRepository;
+@ExtendWith(MockitoExtension.class)
+class ItemUnitTests {
 
     @Mock
     private ItemRepository itemRepository;
 
     @Mock
+    private ItemMapper itemMapper;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
-    private ItemRequestMapper itemRequestMapper;
-
-    @Mock
-    private ItemMapper itemMapper;
+    private CommentRepository commentRepository;
 
     @InjectMocks
-    private ItemRequestServiceImpl itemRequestService;
+    private ItemServiceImpl itemService;
 
     @Test
-    public void testGetOwnerResponse() {
-        Long userId = 1L;
-        User requester = User.builder()
-                .id(userId)
-                .name("John")
-                .email("john@example.com")
+    void addItem_ValidOwnerAndItemDto_ItemAddedSuccessfully() {
+        Long ownerId = 1L;
+        Long itemId = 1L;
+        ItemDto itemDto = ItemDto.builder()
+                .name("itemName")
+                .description("itemDescription")
+                .available(true)
+                .requestId(null)
+                .build();
+        User owner = new User(ownerId, "John Doe", "john@example.com");
+        Item item = Item.builder()
+                .id(itemId)
+                .name("itemName")
+                .description("itemDescription")
+                .available(true)
+                .owner(owner)
+                .request(null)
                 .build();
 
-        ItemRequest itemRequest1 = new ItemRequest();
-        itemRequest1.setId(1L);
-        itemRequest1.setCreated(LocalDateTime.now().minusDays(1));
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(owner));
+        when(itemMapper.toItem(itemDto, owner)).thenReturn(item);
+        when(itemRepository.save(item)).thenReturn(item);
+        when(itemMapper.toItemDto(item)).thenReturn(itemDto);
 
-        Item item1 = Item.builder()
-                .id(1L)
-                .name("Item 1")
-                .build();
+        ItemDto result = itemService.addItem(ownerId, itemDto);
 
-        ItemDto itemDto1 = ItemDto.builder()
-                .id(1L)
-                .name("Item 1")
-                .build();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(requester));
-        when(itemRequestRepository.findAllByRequester(requester)).thenReturn(Collections.singletonList(itemRequest1));
-        when(itemRepository.findAllByRequest(itemRequest1.getId())).thenReturn(Collections.singletonList(item1));
-        when(itemMapper.toItemDto(item1)).thenReturn(itemDto1);
-
-        List<ItemRequestDto> resultDtos = itemRequestService.getOwnerResponse(userId);
-
-        assertEquals(1, resultDtos.size());
+        assertNotNull(result);
+        assertEquals(itemDto.getName(), result.getName());
+        assertEquals(itemDto.getDescription(), result.getDescription());
+        assertEquals(itemDto.getAvailable(), result.getAvailable());
+        assertNull(result.getRequestId());
     }
 
     @Test
-    public void testGetAllNotOwner() {
+    void editItem_ValidOwnerAndItemDto_ItemEditedSuccessfully() {
         Long ownerId = 1L;
+        Long itemId = 1L;
+        ItemDto itemDto = ItemDto.builder()
+                .name("newItemName")
+                .description("newItemDescription")
+                .available(false)
+                .requestId(null)
+                .build();
+        User owner = new User(ownerId, "John Doe", "john@example.com");
+        Item existingItem = Item.builder()
+                .id(itemId)
+                .name("oldItemName")
+                .description("oldItemDescription")
+                .available(true)
+                .owner(owner)
+                .request(null)
+                .build();
+
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(owner));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+        when(itemMapper.toItem(itemDto, owner)).thenReturn(existingItem);
+        when(itemRepository.save(existingItem)).thenReturn(existingItem);
+        when(itemMapper.toItemDto(existingItem)).thenReturn(itemDto);
+
+        ItemDto result = itemService.editItem(ownerId, itemId, itemDto);
+
+        assertNotNull(result);
+        assertEquals(itemDto.getName(), result.getName());
+        assertEquals(itemDto.getDescription(), result.getDescription());
+        assertEquals(itemDto.getAvailable(), result.getAvailable());
+        assertNull(result.getRequestId());
+    }
+
+    @Test
+    void addItem_OwnerNotFound_ThrowsAbsenceException() {
+        Long ownerId = 1L;
+        ItemDto itemDto = ItemDto.builder()
+                .name("itemName")
+                .description("itemDescription")
+                .available(true)
+                .requestId(null)
+                .build();
+
+        when(userRepository.findById(ownerId)).thenReturn(Optional.empty());
+
+        assertThrows(AbsenceException.class, () -> itemService.addItem(ownerId, itemDto));
+    }
+    @Test
+    void editItem_OwnerNotFound_ThrowsAbsenceException() {
+        Long ownerId = 1L;
+        Long itemId = 1L;
+        ItemDto itemDto = ItemDto.builder()
+                .name("newItemName")
+                .description("newItemDescription")
+                .available(false)
+                .requestId(null)
+                .build();
+
+        when(userRepository.findById(ownerId)).thenReturn(Optional.empty());
+
+        assertThrows(AbsenceException.class, () -> itemService.editItem(ownerId, itemId, itemDto));
+    }
+
+    @Test
+    void editItem_ItemNotFound_ThrowsAbsenceException() {
+        Long ownerId = 1L;
+        Long itemId = 1L;
+        ItemDto itemDto = ItemDto.builder()
+                .name("newItemName")
+                .description("newItemDescription")
+                .available(false)
+                .requestId(null)
+                .build();
+        User owner = new User(ownerId, "John Doe", "john@example.com");
+
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(owner));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
+
+        assertThrows(AbsenceException.class, () -> itemService.editItem(ownerId, itemId, itemDto));
+    }
+
+    @Test
+    void getItem_ValidUserAndItemId_ReturnsItemDtoBookingComments() {
+        Long userId = 1L;
+        Long itemId = 1L;
+        User user = new User(userId, "John Doe", "john@example.com");
+        Item item = Item.builder()
+                .id(itemId)
+                .name("itemName")
+                .description("itemDescription")
+                .available(true)
+                .owner(user)
+                .request(null)
+                .build();
+        List<Comment> comments = Collections.singletonList(new Comment());
+        ItemDtoBookingComments expectedResponse = new ItemDtoBookingComments();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(commentRepository.findAllByItem(item)).thenReturn(comments);
+        when(itemMapper.toItemDtoBookingComments(item, comments)).thenReturn(expectedResponse);
+
+        ItemDtoBookingComments result = itemService.getItem(userId, itemId);
+
+        assertEquals(expectedResponse, result);
+    }
+
+    @Test
+    void getItem_InvalidUserId_ThrowsAbsenceException() {
+        Long userId = 1L;
+        Long itemId = 1L;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(AbsenceException.class, () -> itemService.getItem(userId, itemId));
+    }
+
+    @Test
+    void getItem_ItemNotFound_ThrowsAbsenceException() {
+        Long userId = 1L;
+        Long itemId = 1L;
+        User user = new User(userId, "John Doe", "john@example.com");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
+
+        assertThrows(AbsenceException.class, () -> itemService.getItem(userId, itemId));
+    }
+
+    @Test
+    void searchItem_EmptyText_ReturnsEmptyList() {
+        Long ownerId = 1L;
+        String text = "";
         Integer from = 0;
         Integer size = 10;
 
-        if (from < 0) {
-            assertThrows(IndexOutOfBoundsException.class, () -> itemRequestService.getAllNotOwner(ownerId, from, size));
-            return;
-        }
+        List<ItemDto> result = itemService.searchItem(ownerId, text, from, size);
 
-        User user = User.builder()
-                .id(ownerId)
-                .name("John")
-                .email("john@example.com")
-                .build();
-
-        Pageable pageable = PageRequest.of(from / size, size);
-
-        ItemRequest itemRequest1 = new ItemRequest();
-        itemRequest1.setId(1L);
-        itemRequest1.setCreated(LocalDateTime.now().minusDays(1));
-
-        Item item1 = Item.builder()
-                .id(1L)
-                .name("Item 1")
-                .build();
-
-        ItemDto itemDto1 = ItemDto.builder()
-                .id(1L)
-                .name("Item 1")
-                .build();
-
-        when(userRepository.findById(ownerId)).thenReturn(Optional.of(user));
-        when(itemRequestRepository.findAllByRequesterNot(user, pageable)).thenReturn(Collections.singletonList(itemRequest1));
-        when(itemRepository.findAllByRequest(itemRequest1.getId())).thenReturn(Collections.singletonList(item1));
-        when(itemMapper.toItemDto(item1)).thenReturn(itemDto1);
-
-        List<ItemRequestDto> resultDtos = itemRequestService.getAllNotOwner(ownerId, from, size);
-
-        assertEquals(1, resultDtos.size());
-        ItemRequestDto resultDto = resultDtos.get(0);
-
-        verify(userRepository, times(1)).findById(ownerId);
-        verify(itemRequestRepository, times(1)).findAllByRequesterNot(user, pageable);
-        verify(itemRepository, times(1)).findAllByRequest(itemRequest1.getId());
-        verify(itemMapper, times(1)).toItemDto(item1);
-    }
-
-    @Test
-    public void testGetItemRequestById() {
-        Long ownerId = 1L;
-        Long requestId = 1L;
-
-        User user = User.builder()
-                .id(ownerId)
-                .name("John")
-                .email("john@example.com")
-                .build();
-
-        ItemRequest itemRequest = new ItemRequest();
-        itemRequest.setId(requestId);
-        itemRequest.setCreated(LocalDateTime.now().minusDays(1));
-
-        Item item1 = Item.builder()
-                .id(1L)
-                .name("Item 1")
-                .build();
-
-        ItemDto itemDto1 = ItemDto.builder()
-                .id(1L)
-                .name("Item 1")
-                .build();
-
-        List<ItemDto> itemDtos = Collections.singletonList(itemDto1);
-
-        when(userRepository.findById(ownerId)).thenReturn(Optional.of(user));
-        when(itemRequestRepository.findById(requestId)).thenReturn(Optional.of(itemRequest));
-        when(itemRepository.findAllByRequest(itemRequest.getId())).thenReturn(Collections.singletonList(item1));
-        when(itemMapper.toItemDto(item1)).thenReturn(itemDto1);
-        when(itemRequestMapper.toItemRequestDto(itemRequest, itemDtos)).thenReturn(ItemRequestDto.builder()
-                .id(itemRequest.getId())
-                .created(itemRequest.getCreated())
-                .items(itemDtos)
-                .build());
-
-        ItemRequestDto resultDto = itemRequestService.getItemRequestById(ownerId, requestId);
-
-        assertEquals(itemRequest.getId(), resultDto.getId());
-        assertEquals(itemDtos, resultDto.getItems());
-        assertNotNull(resultDto.getCreated());
-
-        verify(userRepository, times(1)).findById(ownerId);
-        verify(itemRequestRepository, times(1)).findById(requestId);
-        verify(itemRepository, times(1)).findAllByRequest(itemRequest.getId());
-        verify(itemMapper, times(1)).toItemDto(item1);
-        verify(itemRequestMapper, times(1)).toItemRequestDto(itemRequest, itemDtos);
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 }

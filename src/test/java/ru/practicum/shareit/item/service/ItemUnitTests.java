@@ -34,9 +34,6 @@ class ItemUnitTests {
     @Mock
     private UserRepository userRepository;
 
-    @Mock
-    private CommentRepository commentRepository;
-
     @InjectMocks
     private ItemServiceImpl itemService;
 
@@ -123,6 +120,7 @@ class ItemUnitTests {
 
         assertThrows(AbsenceException.class, () -> itemService.addItem(ownerId, itemDto));
     }
+
     @Test
     void editItem_OwnerNotFound_ThrowsAbsenceException() {
         Long ownerId = 1L;

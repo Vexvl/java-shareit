@@ -651,8 +651,7 @@ class ItemUnitTests {
             assertEquals("oldDescription", capturedItem.getDescription());
             assertEquals(false, capturedItem.getAvailable());
             assertEquals(owner, capturedItem.getOwner());
-        }
-        catch (AbsenceException ignored){
+        } catch (AbsenceException ignored) {
 
         }
     }

@@ -424,8 +424,7 @@ class BookingUnitTests {
             bookingService.getById(itemOwnerId, bookingId);
             verify(bookingMapper, times(1)).toBookingDto(bookingArgumentCaptor.capture());
             assertEquals(bookingArgumentCaptor.getValue(), requestedBooking);
-        }
-        catch (AbsenceException ignored){
+        } catch (AbsenceException ignored) {
 
         }
     }
@@ -451,8 +450,7 @@ class BookingUnitTests {
             bookingService.getById(bookingOwnerId, bookingId);
             verify(bookingMapper, times(1)).toBookingDto(bookingArgumentCaptor.capture());
             assertEquals(bookingArgumentCaptor.getValue(), requestedBooking);
-        }
-        catch (AbsenceException ignored){
+        } catch (AbsenceException ignored) {
 
         }
     }
@@ -527,7 +525,7 @@ class BookingUnitTests {
         try {
             bookingService.getByStateOwner(bookerId, state, from, size);
 
-            verify(bookingRepository, times(1)).findByBookerId(any(),pageRequestArgumentCaptor.capture());
+            verify(bookingRepository, times(1)).findByBookerId(any(), pageRequestArgumentCaptor.capture());
             verify(bookingRepository, never()).findByBookerIdAndEndIsAfterAndStartIsBefore(any(), any(), any(), any());
             verify(bookingRepository, never()).findByBookerIdAndEndIsBefore(any(), any(), any());
             verify(bookingRepository, never()).findByBookerIdAndStartIsAfter(any(), any(), any());

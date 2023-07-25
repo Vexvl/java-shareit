@@ -106,8 +106,7 @@ class ItemRequestUnitTest {
             ItemRequestDto resultDto = itemRequestService.addItemRequest(itemRequestDto, userId);
             assertEquals(itemRequest.getDescription(), resultDto.getDescription());
             assertEquals(userId, resultDto.getRequester());
-        }
-        catch (NullPointerException ignored){
+        } catch (NullPointerException ignored) {
 
         }
     }

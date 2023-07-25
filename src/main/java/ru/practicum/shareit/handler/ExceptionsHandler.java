@@ -26,12 +26,6 @@ public class ExceptionsHandler {
         return Map.of("Вещь не принадлежит user", e.getMessage());
     }
 
-    @ExceptionHandler(NoPossessionException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleNoPossessionException(NoPossessionException e) {
-        return Map.of("NoPossessionException", e.getMessage());
-    }
-
     @ExceptionHandler(ItemUnavailableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleItemUnavailableException(ItemUnavailableException e) {

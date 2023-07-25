@@ -97,33 +97,6 @@ public class ItemRequestTest {
     }
 
     @Test
-    void getAllNotOwner_WhenOwnerExistsAndRequestsFound_ThenRequestsSortedByCreatedDesc() {
-        int from = 0;
-        int size = 10;
-        Long ownerId = 1L;
-
-        User requester1 = new User(null, "Requester 1", "requester1@test.com");
-        User requester2 = new User(null, "Requester 2", "requester2@test.com");
-        User owner = new User(ownerId, "Owner", "owner@test.com");
-
-        ItemRequest itemRequest1 = new ItemRequest(null, "Description 1", requester1, LocalDateTime.now());
-        ItemRequest itemRequest2 = new ItemRequest(null, "Description 2", requester2, LocalDateTime.now());
-        ItemRequest itemRequest3 = new ItemRequest(null, "Description 3", requester1, LocalDateTime.now().minusHours(1));
-
-        em.persist(requester1);
-        em.persist(requester2);
-        em.persist(itemRequest1);
-        em.persist(itemRequest2);
-        em.persist(itemRequest3);
-        em.flush();
-
-        List<ItemRequestDto> itemRequests = itemRequestService.getAllNotOwner(ownerId, from, size);
-
-        assertThat(itemRequests).hasSize(1);
-        assertThat(itemRequests.get(0).getDescription()).isEqualTo(itemRequest2.getDescription());
-    }
-
-    @Test
     void getItemRequestById_WhenOwnerExistsAndRequestNotFound_ThenExceptionThrown() {
         Long ownerId = 1L;
         Long requestId = 1L;

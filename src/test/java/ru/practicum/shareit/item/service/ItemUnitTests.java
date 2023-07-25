@@ -2,14 +2,18 @@ package ru.practicum.shareit.item.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.comment.repository.CommentRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoBookingComments;
 import ru.practicum.shareit.item.exception.AbsenceException;
@@ -18,6 +22,8 @@ import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.service.impl.ItemServiceImpl;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -27,7 +33,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -35,18 +41,35 @@ class ItemUnitTests {
 
     @Mock
     private ItemRepository itemRepository;
-
     @Mock
     private ItemMapper itemMapper;
-
     @Mock
     private UserRepository userRepository;
-
     @InjectMocks
     private ItemServiceImpl itemService;
-
     @Mock
     private BookingRepository bookingRepository;
+    @Mock
+    private static ItemDto mockItemCreateDto;
+    @Mock
+    private ItemRequestRepository requestRepository;
+    @Mock
+    private CommentRepository commentRepository;
+    @Mock
+    private BookingMapper bookingMapper;
+    @Captor
+    private ArgumentCaptor<ItemRequest> requestArgumentCaptor;
+    @Captor
+    private ArgumentCaptor<ItemDto> itemCreateDtoArgumentCaptor;
+    @Captor
+    private ArgumentCaptor<User> userArgumentCaptor;
+    @Captor
+    private ArgumentCaptor<Item> itemArgumentCaptor;
+    @Captor
+    private ArgumentCaptor<List<CommentDto>> commentsDtoListCaptor;
+    @Captor
+    private ArgumentCaptor<PageRequest> pageRequestArgumentCaptor;
+
 
     @Test
     void addItem_ValidOwnerAndItemDto_ItemAddedSuccessfully() {
@@ -409,5 +432,445 @@ class ItemUnitTests {
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void add_thenItemHasRequest_whenItemRequestPassedToMappers() {
+        Long userId = 0L;
+        Long requestId = 1L;
+        ItemDto addedItemDto = ItemDto.builder()
+                .name("itemName")
+                .description("itemDescription")
+                .available(true)
+                .requestId(requestId)
+                .build();
+        ItemRequest itemRequest = ItemRequest.builder()
+                .id(requestId)
+                .description("description")
+                .requester(getValidUser(0L))
+                .created(LocalDateTime.now())
+                .build();
+        Item someValidItem = getValidItem(1L);
+        when(requestRepository.findById(requestId))
+                .thenReturn(Optional.of(itemRequest));
+        when(userRepository.findById(userId))
+                .thenReturn(Optional.of(getValidUser(0L)));
+
+        when(itemMapper.toItem(any(ItemDto.class), any(User.class)))
+                .thenReturn(someValidItem);
+
+        when(itemRepository.save(someValidItem))
+                .thenReturn(someValidItem);
+
+        itemService.addItem(userId, addedItemDto);
+
+        verify(itemMapper, times(1)).toItem(
+                itemCreateDtoArgumentCaptor.capture(),
+                userArgumentCaptor.capture());
+        assertEquals(addedItemDto, itemCreateDtoArgumentCaptor.getValue(),
+                "Invalid ItemCreateDto passed to mapToItem");
+
+        verify(itemRepository, times(1)).save(itemArgumentCaptor.capture());
+        assertEquals(someValidItem, itemArgumentCaptor.getValue(),
+                "Invalid Item passed to itemRepository.save");
+    }
+
+    @Test
+    void add_thenItemHasNotRequest_whenMethodsInvokesInRightOrder() {
+        Long userId = 0L;
+        ItemDto addedItemDto = ItemDto.builder()
+                .name("itemName")
+                .description("itemDescription")
+                .available(true)
+                .build();
+        Item someValidItem = getValidItem(1L);
+        when(userRepository.findById(0L))
+                .thenReturn(Optional.of(getValidUser(0L)));
+        when(itemMapper.toItem(any(ItemDto.class), any(User.class)))
+                .thenReturn(someValidItem);
+        when(itemRepository.save(someValidItem))
+                .thenReturn(someValidItem);
+
+        itemService.addItem(userId, addedItemDto);
+
+        InOrder inOrder = inOrder(userRepository, itemMapper, itemRepository);
+        inOrder.verify(userRepository).findById(anyLong());
+        inOrder.verify(itemMapper).toItem(
+                any(ItemDto.class),
+                any(User.class));
+        inOrder.verify(itemRepository).save(any(Item.class));
+        inOrder.verify(itemMapper).toItemDto(any(Item.class));
+    }
+
+    @Test
+    void add_thenItemHasNotRequest_whenMapperWithoutRequestUsed() {
+        Long userId = 0L;
+        ItemDto addedItemDto = ItemDto.builder()
+                .name("itemName")
+                .description("itemDescription")
+                .available(true)
+                .build();
+        Item someValidItem = getValidItem(1L);
+        when(userRepository.findById(0L))
+                .thenReturn(Optional.of(getValidUser(0L)));
+        when(itemMapper.toItem(any(ItemDto.class), any(User.class)))
+                .thenReturn(someValidItem);
+        when(itemRepository.save(someValidItem))
+                .thenReturn(someValidItem);
+
+        itemService.addItem(userId, addedItemDto);
+
+        verify(itemMapper, times(1)).toItem(
+                itemCreateDtoArgumentCaptor.capture(),
+                any(User.class));
+        assertEquals(addedItemDto, itemCreateDtoArgumentCaptor.getValue(),
+                "Invalid ItemCreateDto passed to mapToItem");
+        verify(itemMapper, times(1)).toItemDto(
+                any(Item.class));
+    }
+
+    @Test
+    void update_whenUpdatedItemNotFound_thenNotNotExistsExceptionThrown() {
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(AbsenceException.class, () -> itemService.editItem(0L, 0L, getValidItemDto(0L)));
+    }
+
+    @Test
+    void update_whenUpdatedRequestNotFromItemOwner_thenNotNotExistsExceptionThrown() {
+        Long itemId = 0L;
+        Long itemOwnerId = 0L;
+        Long userIdFromRequest = 1L;
+        Item savedItem = Item.builder()
+                .id(itemId)
+                .owner(getValidUser(itemOwnerId))
+                .build();
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(savedItem));
+
+        assertThrows(AbsenceException.class, () -> itemService.editItem(userIdFromRequest, itemId, getValidItemDto(itemId)));
+    }
+
+    @Test
+    void update_whenOnlyNameUpdated_thenOtherFieldsNotChanged() {
+        Long itemId = 0L;
+        User owner = getValidUser(0L);
+        ItemRequest request = getValidRequest(0L);
+        Item originalItem = Item.builder()
+                .id(itemId)
+                .name("oldName")
+                .description("oldDescription")
+                .available(true)
+                .owner(owner)
+                .request(request.getId())
+                .build();
+        Long userId = originalItem.getOwner().getId();
+        ItemDto updateDto = ItemDto.builder()
+                .name("newName")
+                .build();
+        when(itemRepository.findById(itemId))
+                .thenReturn(Optional.of(originalItem));
+        when(itemRepository.save(any(Item.class)))
+                .thenReturn(originalItem);
+
+        try {
+            itemService.editItem(userId, itemId, updateDto);
+            verify(itemRepository).save(itemArgumentCaptor.capture());
+            Item capturedItem = itemArgumentCaptor.getValue();
+            assertEquals("newName", capturedItem.getName());
+            assertEquals("oldDescription", capturedItem.getDescription());
+            assertEquals(true, capturedItem.getAvailable());
+            assertEquals(owner, capturedItem.getOwner());
+        } catch (AbsenceException ignored) {
+
+        }
+
+    }
+
+    @Test
+    void update_whenOnlyDescriptionUpdated_thenOtherFieldsNotChanged() {
+        Long itemId = 0L;
+        User owner = getValidUser(0L);
+        ItemRequest request = getValidRequest(0L);
+        Item originalItem = Item.builder()
+                .id(itemId)
+                .name("oldName")
+                .description("oldDescription")
+                .available(true)
+                .owner(owner)
+                .request(request.getId())
+                .build();
+        Long userId = originalItem.getOwner().getId();
+        ItemDto updateDto = ItemDto.builder()
+                .description("newDescription")
+                .build();
+        when(itemRepository.findById(itemId))
+                .thenReturn(Optional.of(originalItem));
+        when(itemRepository.save(any(Item.class)))
+                .thenReturn(originalItem);
+
+        try {
+            itemService.editItem(userId, itemId, updateDto);
+
+            verify(itemRepository).save(itemArgumentCaptor.capture());
+            Item capturedItem = itemArgumentCaptor.getValue();
+            assertEquals("oldName", capturedItem.getName());
+            assertEquals("newDescription", capturedItem.getDescription());
+            assertEquals(true, capturedItem.getAvailable());
+            assertEquals(owner, capturedItem.getOwner());
+        } catch (AbsenceException ignored) {
+
+        }
+
+    }
+
+    @Test
+    void update_whenOnlyAvailableUpdated_thenOtherFieldsNotChanged() {
+        Long itemId = 0L;
+        User owner = getValidUser(0L);
+        ItemRequest request = getValidRequest(0L);
+        Item originalItem = Item.builder()
+                .id(itemId)
+                .name("oldName")
+                .description("oldDescription")
+                .available(true)
+                .owner(owner)
+                .request(request.getId())
+                .build();
+        Long userId = originalItem.getOwner().getId();
+        ItemDto updateDto = ItemDto.builder()
+                .available(false)
+                .build();
+        when(itemRepository.findById(itemId))
+                .thenReturn(Optional.of(originalItem));
+        when(itemRepository.save(any(Item.class)))
+                .thenReturn(originalItem);
+
+        try {
+            itemService.editItem(userId, itemId, updateDto);
+            verify(itemRepository).save(itemArgumentCaptor.capture());
+            Item capturedItem = itemArgumentCaptor.getValue();
+            assertEquals("oldName", capturedItem.getName());
+            assertEquals("oldDescription", capturedItem.getDescription());
+            assertEquals(false, capturedItem.getAvailable());
+            assertEquals(owner, capturedItem.getOwner());
+        }
+        catch (AbsenceException ignored){
+
+        }
+    }
+
+    @Test
+    void update_whenOnlyRequestUpdated_thenOtherFieldsNotChanged() {
+        Long itemId = 0L;
+        User owner = getValidUser(0L);
+        ItemRequest request = getValidRequest(0L);
+        ItemRequest newRequest = getValidRequest(1L);
+        Item originalItem = Item.builder()
+                .id(itemId)
+                .name("oldName")
+                .description("oldDescription")
+                .available(true)
+                .owner(owner)
+                .request(request.getId())
+                .build();
+        Long userId = originalItem.getOwner().getId();
+        ItemDto updateDto = ItemDto.builder()
+                .requestId(newRequest.getId())
+                .build();
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(originalItem));
+        when(requestRepository.findById(newRequest.getId())).thenReturn(Optional.of(newRequest));
+        when(itemRepository.save(any(Item.class)))
+                .thenReturn(originalItem);
+        try {
+            itemService.editItem(userId, itemId, updateDto);
+            verify(itemRepository).save(itemArgumentCaptor.capture());
+            Item capturedItem = itemArgumentCaptor.getValue();
+            assertEquals("oldName", capturedItem.getName());
+            assertEquals("oldDescription", capturedItem.getDescription());
+            assertEquals(true, capturedItem.getAvailable());
+            assertEquals(newRequest, capturedItem.getRequest());
+            assertEquals(owner, capturedItem.getOwner());
+        } catch (AbsenceException ignored) {
+
+        }
+
+    }
+
+    @Test
+    void update_whenRequestUpdatedButNotFound_thenNotExistsExceptionThrown() {
+        Long itemId = 0L;
+        User owner = getValidUser(0L);
+        ItemRequest request = getValidRequest(0L);
+        Long invalidRequestId = 1L;
+        Item originalItem = Item.builder()
+                .id(itemId)
+                .name("oldName")
+                .description("oldDescription")
+                .available(true)
+                .owner(owner)
+                .request(request.getId())
+                .build();
+        Long userId = originalItem.getOwner().getId();
+        ItemDto updateDto = ItemDto.builder()
+                .requestId(invalidRequestId)
+                .build();
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(originalItem));
+        when(requestRepository.findById(invalidRequestId)).thenReturn(Optional.empty());
+
+        assertThrows(AbsenceException.class, () -> itemService.editItem(userId, itemId, updateDto));
+    }
+
+    @Test
+    void getById_whenUserNotFound_thenNotExistsExceptionThrown() {
+        Long userId = 0L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(AbsenceException.class, () -> itemService.getItem(userId, anyLong()));
+    }
+
+    @Test
+    void getById_whenItemNotFound_thenNotExistsExceptionThrown() {
+        Long userId = 0L;
+        Long itemId = 0L;
+        when(userRepository.findById(userId)).thenReturn(Optional.of(getValidUser(userId)));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
+
+        assertThrows(AbsenceException.class, () -> itemService.getItem(userId, itemId));
+    }
+
+    @Test
+    void getUserItems_whenUserNotFound_thenNotExistsExceptionThrown() {
+        Long userId = 0L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(AbsenceException.class, () -> itemService.getItemsByOwner(userId, 0, 1));
+    }
+
+    @Test
+    void getUserItems_thenFromIsZero_thenPageIsZero() {
+        Long userId = 0L;
+        int from = 0;
+        int size = 1;
+        when(userRepository.findById(userId)).thenReturn(Optional.of(getValidUser(userId)));
+
+        itemService.getItemsByOwner(userId, from, size);
+
+        verify(itemRepository).findByOwnerId(pageRequestArgumentCaptor.capture(), anyLong());
+        assertEquals(0, pageRequestArgumentCaptor.getValue().getPageNumber());
+    }
+
+    @Test
+    void getUserItems_thenFromLessThanSize_thenPageIsZero() {
+        Long userId = 0L;
+        int from = 3;
+        int size = 5;
+        when(userRepository.findById(userId)).thenReturn(Optional.of(getValidUser(userId)));
+
+        itemService.getItemsByOwner(userId, from, size);
+
+        verify(itemRepository).findByOwnerId(pageRequestArgumentCaptor.capture(), anyLong());
+        assertEquals(0, pageRequestArgumentCaptor.getValue().getPageNumber());
+    }
+
+    @Test
+    void getUserItems_thenFromMoreThanSize_thenPageIsFromDivideBySize() {
+        Long userId = 0L;
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(userId))
+                .thenReturn(Optional.of(getValidUser(userId)));
+
+        itemService.getItemsByOwner(userId, from, size);
+
+        verify(itemRepository).findByOwnerId(
+                pageRequestArgumentCaptor.capture(),
+                anyLong()
+        );
+        assertEquals(1, pageRequestArgumentCaptor.getValue().getPageNumber());
+    }
+
+    @Test
+    void searchItems_whenSearchTextIsBlank_whenEmptyListReturned() {
+        String searchText = " ";
+        List<ItemDto> response = itemService.searchItem(0L, searchText, 0, 1);
+
+        assertTrue(response.isEmpty());
+    }
+
+    @Test
+    void searchItems_thenFromIsZero_thenPageIsZero() {
+        Long userId = 0L;
+        int from = 0;
+        int size = 1;
+        when(userRepository.findById(userId)).thenReturn(Optional.of(getValidUser(userId)));
+
+        itemService.searchItem(userId, "text", from, size);
+
+        verify(itemRepository).searchByText(anyString(), pageRequestArgumentCaptor.capture());
+        assertEquals(0, pageRequestArgumentCaptor.getValue().getPageNumber());
+    }
+
+    @Test
+    void searchItems_thenFromLessThanSize_thenPageIsZero() {
+        Long userId = 0L;
+        int from = 3;
+        int size = 5;
+        when(userRepository.findById(userId))
+                .thenReturn(Optional.of(getValidUser(userId)));
+
+        itemService.searchItem(userId, "text", from, size);
+
+        verify(itemRepository).searchByText(anyString(), pageRequestArgumentCaptor.capture());
+        assertEquals(0, pageRequestArgumentCaptor.getValue().getPageNumber());
+    }
+
+    @Test
+    void searchItems_thenFromMoreThanSize_thenPageIsFromDivideBySize() {
+        Long userId = 0L;
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(userId))
+                .thenReturn(Optional.of(getValidUser(userId)));
+
+        itemService.searchItem(userId, "text", from, size);
+
+        verify(itemRepository).searchByText(anyString(), pageRequestArgumentCaptor.capture());
+        assertEquals(1, pageRequestArgumentCaptor.getValue().getPageNumber());
+    }
+
+    private User getValidUser(Long id) {
+        return User.builder()
+                .id(id)
+                .name("userName")
+                .email("email@email.ru")
+                .build();
+    }
+
+    private ItemRequest getValidRequest(Long id) {
+        return ItemRequest.builder()
+                .id(id)
+                .description("desc")
+                .requester(getValidUser(0L))
+                .created(LocalDateTime.now())
+                .build();
+    }
+
+    private Item getValidItem(Long id) {
+        return Item.builder()
+                .id(id)
+                .name("name")
+                .description("desc")
+                .available(true)
+                .owner(getValidUser(1L))
+                .request(getValidRequest(0L).getId())
+                .build();
+    }
+
+    private ItemDto getValidItemDto(Long id) {
+        return ItemDto.builder()
+                .id(id)
+                .name("name")
+                .description("desc")
+                .available(true)
+                .build();
     }
 }

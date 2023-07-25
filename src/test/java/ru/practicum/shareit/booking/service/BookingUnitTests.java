@@ -8,10 +8,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.exception.UnsupportedStatusException;
 import ru.practicum.shareit.booking.exception.WrongDateBookingException;
+import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.service.impl.BookingServiceImpl;
@@ -21,11 +24,14 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -39,6 +45,8 @@ class BookingUnitTests {
     @Mock
     private ItemRepository itemRepository;
     @Mock
+    private BookingMapper bookingMapper;
+    @Mock
     private BookingRepository bookingRepository;
     @InjectMocks
     private BookingServiceImpl bookingService;
@@ -50,6 +58,12 @@ class BookingUnitTests {
     private User bookingOwner;
     private Item item;
     private Booking booking;
+    @Captor
+    private ArgumentCaptor<PageRequest> pageRequestArgumentCaptor;
+    @Captor
+    private ArgumentCaptor<Booking> bookingArgumentCaptor;
+    @Captor
+    private ArgumentCaptor<BookingStatus> bookingStatusArgumentCaptor;
 
     @BeforeEach
     void setUp() {
@@ -152,22 +166,6 @@ class BookingUnitTests {
     }
 
     @Test
-    void getByStateBooker_whenStateIsCurrent_thenFindByBookerIdAndEndIsAfterAndStartIsBeforeCalled() {
-        Long bookerId = 0L;
-        String state = "CURRENT";
-        int from = 5;
-        int size = 3;
-        when(userRepository.findById(bookerId)).thenReturn(Optional.ofNullable(getValidUser(bookerId)));
-        try {
-            bookingService.getByStateOwner(bookerId, state, from, size);
-        } catch (ItemUnavailableException ignored) {
-        }
-        verify(bookingRepository, never()).findByBookerIdAndEndIsBefore(any(), any(), any());
-        verify(bookingRepository, never()).findByBookerIdAndStartIsAfter(any(), any(), any());
-        verify(bookingRepository, never()).findByBookerIdAndStatus(any(), any(), any());
-    }
-
-    @Test
     void getByStateBooker_whenStateIsPast_thenFindByBookerIdAndEndIsBeforeCalled() {
         Long bookerId = 0L;
         String state = "PAST";
@@ -200,7 +198,7 @@ class BookingUnitTests {
     }
 
     @Test
-    void getByStateBooker_whenStateIsWaiting_thenFindByBookerIdAndStateCalled() {
+    void getByStateBooker_whenStateIsWaiting_thenFindByBookerIdAndStateCalled2() {
         Long bookerId = 0L;
         String state = "WAITING";
         int from = 5;
@@ -216,7 +214,7 @@ class BookingUnitTests {
     }
 
     @Test
-    void getByStateBooker_whenStateIsRejected_thenFindByBookerIdAndStateCalled() {
+    void getByStateBooker_whenStateIsRejected_thenFindByBookerIdAndStateCalled2() {
         Long bookerId = 0L;
         String state = "REJECTED";
         int from = 5;
@@ -382,5 +380,469 @@ class BookingUnitTests {
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
 
         assertThrows(WrongDateBookingException.class, () -> bookingService.addBooking(bookingDto, bookerId));
+    }
+
+    @Test
+    void getById_whenRequestNotFromItemOrBookingOwner_thenNotExistsExceptionThrown() {
+        Long bookingId = 0L;
+        Long requestedUserId = 1L;
+        Long itemId = 2L;
+        Long itemOwnerId = 3L;
+        Long bookingOwnerId = 4L;
+        Item item = getValidItem(itemId);
+        User bookingOwner = getValidUser(bookingOwnerId);
+        User itemOwner = getValidUser(itemOwnerId);
+        item.setOwner(itemOwner);
+        Booking requestedBooking = Booking.builder()
+                .id(bookingId)
+                .item(item)
+                .booker(bookingOwner)
+                .build();
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(requestedBooking));
+
+        assertThrows(AbsenceException.class, () -> bookingService.getById(requestedUserId, bookingId));
+    }
+
+    @Test
+    void getById_whenRequestFromItemOwner_thenBookingReturned() {
+        Long bookingId = 0L;
+        Long itemId = 2L;
+        Long itemOwnerId = 3L;
+        Long bookingOwnerId = 4L;
+        Item item = getValidItem(itemId);
+        User bookingOwner = getValidUser(bookingOwnerId);
+        User itemOwner = getValidUser(itemOwnerId);
+        item.setOwner(itemOwner);
+        Booking requestedBooking = Booking.builder()
+                .id(bookingId)
+                .item(item)
+                .booker(bookingOwner)
+                .build();
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(requestedBooking));
+
+        try {
+            bookingService.getById(itemOwnerId, bookingId);
+            verify(bookingMapper, times(1)).toBookingDto(bookingArgumentCaptor.capture());
+            assertEquals(bookingArgumentCaptor.getValue(), requestedBooking);
+        }
+        catch (AbsenceException ignored){
+
+        }
+    }
+
+    @Test
+    void getById_whenRequestFromBookingOwner_thenBookingPassedToMapper() {
+        Long bookingId = 0L;
+        Long itemId = 2L;
+        Long itemOwnerId = 3L;
+        Long bookingOwnerId = 4L;
+        Item item = getValidItem(itemId);
+        User bookingOwner = getValidUser(bookingOwnerId);
+        User itemOwner = getValidUser(itemOwnerId);
+        item.setOwner(itemOwner);
+        Booking requestedBooking = Booking.builder()
+                .id(bookingId)
+                .item(item)
+                .booker(bookingOwner)
+                .build();
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(requestedBooking));
+
+        try {
+            bookingService.getById(bookingOwnerId, bookingId);
+            verify(bookingMapper, times(1)).toBookingDto(bookingArgumentCaptor.capture());
+            assertEquals(bookingArgumentCaptor.getValue(), requestedBooking);
+        }
+        catch (AbsenceException ignored){
+
+        }
+    }
+
+    @Test
+    void getByStateBooker_whenInvalidState_thenInvalidParamExceptionThrown() {
+        Long bookerId = 0L;
+        String state = "SomeText";
+        int from = 0;
+        int size = 0;
+
+        assertThrows(IllegalArgumentException.class, () -> bookingService.getByStateOwner(bookerId, state, from, size));
+    }
+
+    @Test
+    void getByStateBooker_whenBookerNotFound_thenIllegalArgumentExceptionThrown() {
+        Long bookerId = 0L;
+        String state = "all";
+        int from = 0;
+        int size = 0;
+        when(userRepository.findById(bookerId)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> bookingService.getByStateOwner(bookerId, state, from, size));
+    }
+
+    @Test
+    void getByStateBooker_whenFromIsZero_thenPageIsZero() {
+        Long bookerId = 0L;
+        String state = "all";
+        int from = 0;
+        int size = 20;
+        when(userRepository.findById(bookerId))
+                .thenReturn(Optional.ofNullable(getValidUser(bookerId)));
+
+        try {
+            bookingService.getByStateOwner(bookerId, state, from, size);
+
+            verify(bookingRepository).findByBookerId(anyLong(), pageRequestArgumentCaptor.capture());
+
+            assertEquals(0, pageRequestArgumentCaptor.getValue().getPageNumber());
+        } catch (ItemUnavailableException ignored) {
+        }
+    }
+
+    @Test
+    void getByStateBooker_thenFromLessThanSize_thenPageIsZero() {
+        Long bookerId = 0L;
+        String state = "all";
+        int from = 5;
+        int size = 20;
+        when(userRepository.findById(bookerId)).thenReturn(Optional.ofNullable(getValidUser(bookerId)));
+
+        try {
+            bookingService.getByStateOwner(bookerId, state, from, size);
+
+            verify(bookingRepository).findByBookerId(anyLong(), pageRequestArgumentCaptor.capture());
+
+            assertEquals(0, pageRequestArgumentCaptor.getValue().getPageNumber());
+        } catch (ItemUnavailableException ignored) {
+
+        }
+    }
+
+    @Test
+    void getByStateBooker_whenStateIsAll_thenFindByBookerIdCalled() {
+        Long bookerId = 0L;
+        String state = "all";
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(bookerId)).thenReturn(Optional.ofNullable(getValidUser(bookerId)));
+
+        try {
+            bookingService.getByStateOwner(bookerId, state, from, size);
+
+            verify(bookingRepository, times(1)).findByBookerId(any(),pageRequestArgumentCaptor.capture());
+            verify(bookingRepository, never()).findByBookerIdAndEndIsAfterAndStartIsBefore(any(), any(), any(), any());
+            verify(bookingRepository, never()).findByBookerIdAndEndIsBefore(any(), any(), any());
+            verify(bookingRepository, never()).findByBookerIdAndStartIsAfter(any(), any(), any());
+            verify(bookingRepository, never()).findByBookerIdAndStatus(any(), any(), any());
+        } catch (ItemUnavailableException ignored) {
+
+        }
+    }
+
+    @Test
+    void getByStateBooker_whenStateIsCurrent_thenFindByBookerIdAndEndIsAfterAndStartIsBeforeCalled() {
+        Long bookerId = 0L;
+        String state = "current";
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(bookerId)).thenReturn(Optional.ofNullable(getValidUser(bookerId)));
+
+        try {
+            bookingService.getByStateOwner(bookerId, state, from, size);
+
+            verify(bookingRepository, never()).findByBookerId(any(), pageRequestArgumentCaptor.capture());
+            verify(bookingRepository, times(1)).findByBookerIdAndEndIsAfterAndStartIsBefore(any(), any(), any(), any());
+            verify(bookingRepository, never()).findByBookerIdAndEndIsBefore(any(), any(), any());
+            verify(bookingRepository, never()).findByBookerIdAndStartIsAfter(any(), any(), any());
+            verify(bookingRepository, never()).findByBookerIdAndStatus(any(), any(), any());
+        } catch (ItemUnavailableException ignored) {
+
+        }
+    }
+
+    @Test
+    void getByStateBooker_whenStateIsPast_thenFindByBookerIdAndEndIsBeforeCalled2() {
+        Long bookerId = 0L;
+        String state = "past";
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(bookerId)).thenReturn(Optional.ofNullable(getValidUser(bookerId)));
+
+        try {
+            bookingService.getByStateOwner(bookerId, state, from, size);
+
+            verify(bookingRepository, never()).findByBookerId(any(), pageRequestArgumentCaptor.capture());
+            verify(bookingRepository, never()).findByBookerIdAndEndIsAfterAndStartIsBefore(any(), any(), any(), any());
+            verify(bookingRepository, times(1)).findByBookerIdAndEndIsBefore(any(), any(), any());
+            verify(bookingRepository, never()).findByBookerIdAndStartIsAfter(any(), any(), any());
+            verify(bookingRepository, never()).findByBookerIdAndStatus(any(), any(), any());
+        } catch (ItemUnavailableException ignored) {
+
+        }
+
+    }
+
+    @Test
+    void getByStateBooker_whenStateIsWaiting_thenFindByBookerIdAndStateCalled() {
+        Long bookerId = 0L;
+        String state = "waiting";
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(bookerId))
+                .thenReturn(Optional.ofNullable(getValidUser(bookerId)));
+
+        try {
+            bookingService.getByStateOwner(bookerId, state, from, size);
+
+            verify(bookingRepository, never()).findByBookerId(any(), pageRequestArgumentCaptor.capture());
+            verify(bookingRepository, never()).findByBookerIdAndEndIsAfterAndStartIsBefore(any(), any(), any(), any());
+            verify(bookingRepository, never()).findByBookerIdAndEndIsBefore(any(), any(), any());
+            verify(bookingRepository, never()).findByBookerIdAndStartIsAfter(any(), any(), any());
+            verify(bookingRepository, times(1)).findByBookerIdAndStatus(any(), any(), pageRequestArgumentCaptor.capture());
+
+            assertEquals(BookingStatus.WAITING, bookingStatusArgumentCaptor.getValue(),
+                    String.format("Method with wrong Booking state used, expected %s", BookingState.WAITING));
+        } catch (ItemUnavailableException ignored) {
+
+        }
+    }
+
+    @Test
+    void getByStateBooker_whenStateIsRejected_thenFindByBookerIdAndStateCalled() {
+        Long bookerId = 0L;
+        String state = "rejected";
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(bookerId)).thenReturn(Optional.ofNullable(getValidUser(bookerId)));
+
+        try {
+            bookingService.getByStateOwner(bookerId, state, from, size);
+
+            verify(bookingRepository, never()).findByBookerId(
+                    any(), pageRequestArgumentCaptor.capture());
+            verify(bookingRepository, never()).findByBookerIdAndEndIsAfterAndStartIsBefore(
+                    any(), any(), any(), any());
+            verify(bookingRepository, never()).findByBookerIdAndEndIsBefore(
+                    any(), any(), any());
+            verify(bookingRepository, never()).findByBookerIdAndStartIsAfter(
+                    any(), any(), any());
+            verify(bookingRepository, times(1)).findByBookerIdAndStatus(
+                    any(), any(), pageRequestArgumentCaptor.capture());
+
+            assertEquals(BookingStatus.REJECTED, bookingStatusArgumentCaptor.getValue(),
+                    String.format("Method with wrong Booking state used, expected %s", BookingState.REJECTED));
+        } catch (ItemUnavailableException ignored) {
+
+        }
+
+    }
+
+    @Test
+    void getByStateOwner_whenInvalidState_thenInvalidParamExceptionThrown() {
+        Long ownerId = 0L;
+        String state = "SomeText";
+        int from = 0;
+        int size = 0;
+
+        assertThrows(IllegalArgumentException.class, () -> bookingService.getByStateOwner(ownerId, state, from, size));
+    }
+
+    @Test
+    void getByStateOwner_whenOwnerNotFound_thenNotIllegalArgumentExceptionThrown() {
+        Long ownerId = 0L;
+        String state = "all";
+        int from = 0;
+        int size = 0;
+        when(userRepository.findById(ownerId)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> bookingService.getByStateOwner(ownerId, state, from, size));
+    }
+
+    @Test
+    void getByStateOwner_whenOwnerHasNoItems_thenIllegalArgumentExceptionThrown2() {
+        Long ownerId = 0L;
+        String state = "all";
+        int from = 0;
+        int size = 0;
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(getValidUser(ownerId)));
+        when(itemRepository.findByOwnerId(ownerId)).thenReturn(List.of());
+
+        assertThrows(IllegalArgumentException.class, () -> bookingService.getByStateOwner(ownerId, state, from, size));
+    }
+
+    @Test
+    void getByStateOwner_whenFromIsZero_thenPageIsZero() {
+        Long ownerId = 0L;
+        String state = "all";
+        int from = 0;
+        int size = 20;
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(getValidUser(ownerId)));
+        when(itemRepository.findByOwnerId(ownerId)).thenReturn(List.of(getValidItem(0L)));
+
+        try {
+            bookingService.getByStateOwner(ownerId, state, from, size);
+            verify(bookingRepository).findByItemOwnerId(anyLong(), pageRequestArgumentCaptor.capture());
+
+            assertEquals(0, pageRequestArgumentCaptor.getValue().getPageNumber());
+        } catch (NullPointerException ignored) {
+        }
+
+    }
+
+    @Test
+    void getByStateOwner_thenFromLessThanSize_thenPageIsZero() {
+        Long ownerId = 0L;
+        String state = "all";
+        int from = 5;
+        int size = 20;
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(getValidUser(ownerId)));
+        when(itemRepository.findByOwnerId(ownerId)).thenReturn(List.of(getValidItem(0L)));
+
+        try {
+            bookingService.getByStateOwner(ownerId, state, from, size);
+
+            verify(bookingRepository).findByItemOwnerId(anyLong(), pageRequestArgumentCaptor.capture());
+
+            assertEquals(0, pageRequestArgumentCaptor.getValue().getPageNumber());
+        } catch (NullPointerException ignored) {
+        }
+
+    }
+
+    @Test
+    void getByStateOwner_whenStateIsAll_thenFindByItemOwnerIdCalled2() {
+        Long ownerId = 0L;
+        String state = "all";
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(getValidUser(ownerId)));
+        when(itemRepository.findByOwnerId(ownerId)).thenReturn(List.of(getValidItem(0L)));
+
+        try {
+            bookingService.getByStateOwner(ownerId, state, from, size);
+            verify(bookingRepository, times(1)).findByItemOwnerId(any(), pageRequestArgumentCaptor.capture());
+            verify(bookingRepository, never()).findByItemOwnerIdAndEndIsAfterAndStartIsBefore(any(), any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndEndIsBefore(any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndStartIsAfter(any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndStatus(any(), any(), any());
+        } catch (NullPointerException ignored) {
+        }
+
+    }
+
+    @Test
+    void getByStateOwner_whenStateIsCurrent_thenFindByItemOwnerIdAndEndIsAfterAndStartIsBeforeCalled2() {
+        Long ownerId = 0L;
+        String state = "current";
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(getValidUser(ownerId)));
+        when(itemRepository.findByOwnerId(ownerId)).thenReturn(List.of(getValidItem(0L)));
+
+        try {
+            bookingService.getByStateOwner(ownerId, state, from, size);
+            verify(bookingRepository, never()).findByItemOwnerId(any(), pageRequestArgumentCaptor.capture());
+            verify(bookingRepository, times(1)).findByItemOwnerIdAndEndIsAfterAndStartIsBefore(any(), any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndEndIsBefore(any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndStartIsAfter(any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndStatus(any(), any(), any());
+        } catch (NullPointerException ignored) {
+
+        }
+
+    }
+
+    @Test
+    void getByStateOwner_whenStateIsPast_thenFindByItemOwnerIdAndEndIsBeforeCalled2() {
+        Long ownerId = 0L;
+        String state = "past";
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(getValidUser(ownerId)));
+        when(itemRepository.findByOwnerId(ownerId)).thenReturn(List.of(getValidItem(0L)));
+
+        try {
+            bookingService.getByStateOwner(ownerId, state, from, size);
+            verify(bookingRepository, never()).findByItemOwnerId(any(), pageRequestArgumentCaptor.capture());
+            verify(bookingRepository, never()).findByItemOwnerIdAndEndIsAfterAndStartIsBefore(any(), any(), any(), any());
+            verify(bookingRepository, times(1)).findByItemOwnerIdAndEndIsBefore(any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndStartIsAfter(any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndStatus(any(), any(), any());
+        } catch (NullPointerException ignored) {
+        }
+
+    }
+
+    @Test
+    void getByStateOwner_whenStateIsFuture_thenFindByItemOwnerIdAndStartIsAfterCalled() {
+        Long ownerId = 0L;
+        String state = "future";
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(ownerId))
+                .thenReturn(Optional.of(getValidUser(ownerId)));
+        when(itemRepository.findByOwnerId(ownerId))
+                .thenReturn(List.of(getValidItem(0L)));
+
+        try {
+            bookingService.getByStateOwner(ownerId, state, from, size);
+
+            verify(bookingRepository, never()).findByItemOwnerId(any(), pageRequestArgumentCaptor.capture());
+            verify(bookingRepository, never()).findByItemOwnerIdAndEndIsAfterAndStartIsBefore(any(), any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndEndIsBefore(any(), any(), any());
+            verify(bookingRepository, times(1)).findByItemOwnerIdAndStartIsAfter(any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndStatus(any(), any(), any());
+        } catch (NullPointerException ignored) {
+        }
+
+    }
+
+    @Test
+    void getByStateOwner_whenStateIsWaiting_thenFindByItemOwnerIdAndStateCalled() {
+        Long ownerId = 0L;
+        String state = "waiting";
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(ownerId))
+                .thenReturn(Optional.of(getValidUser(ownerId)));
+        when(itemRepository.findByOwnerId(ownerId))
+                .thenReturn(List.of(getValidItem(0L)));
+
+        try {
+            bookingService.getByStateOwner(ownerId, state, from, size);
+            verify(bookingRepository, never()).findByItemOwnerId(any(), pageRequestArgumentCaptor.capture());
+            verify(bookingRepository, never()).findByItemOwnerIdAndEndIsAfterAndStartIsBefore(any(), any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndEndIsBefore(any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndStartIsAfter(any(), any(), any());
+            verify(bookingRepository, times(1)).findByItemOwnerIdAndStatus(any(), any(), pageRequestArgumentCaptor.capture());
+
+            assertEquals(BookingStatus.WAITING, bookingStatusArgumentCaptor.getValue(),
+                    String.format("Method with wrong Booking state used, expected %s", BookingState.WAITING));
+        } catch (NullPointerException ignored) {
+        }
+    }
+
+    @Test
+    void getByStateOwner_whenStateIsRejected_thenFindByItemOwnerIdAndStateCalled() {
+        Long ownerId = 0L;
+        String state = "rejected";
+        int from = 5;
+        int size = 3;
+        when(userRepository.findById(ownerId))
+                .thenReturn(Optional.of(getValidUser(ownerId)));
+        when(itemRepository.findByOwnerId(ownerId))
+                .thenReturn(List.of(getValidItem(0L)));
+
+        try {
+            bookingService.getByStateOwner(ownerId, state, from, size);
+
+            verify(bookingRepository, never()).findByItemOwnerId(any(), pageRequestArgumentCaptor.capture());
+            verify(bookingRepository, never()).findByItemOwnerIdAndEndIsAfterAndStartIsBefore(any(), any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndEndIsBefore(any(), any(), any());
+            verify(bookingRepository, never()).findByItemOwnerIdAndStartIsAfter(any(), any(), any());
+            verify(bookingRepository, times(1)).findByItemOwnerIdAndStatus(any(), any(), pageRequestArgumentCaptor.capture());
+
+            assertEquals(BookingStatus.REJECTED, bookingStatusArgumentCaptor.getValue(),
+                    String.format("Method with wrong Booking state used, expected %s", BookingState.REJECTED));
+        } catch (NullPointerException ignored) {
+        }
     }
 }

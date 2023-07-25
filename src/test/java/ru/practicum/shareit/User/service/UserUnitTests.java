@@ -56,4 +56,15 @@ class UserUnitTests {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(null));
         assertThrows(AbsenceException.class, () -> userService.getUser(anyLong()));
     }
+
+    @Test
+    void deleteUser_UserExists_UserDeletedSuccessfully() {
+        Long userId = 1L;
+
+        doNothing().when(userRepository).deleteById(userId);
+
+        userService.deleteUser(userId);
+
+        verify(userRepository, times(1)).deleteById(userId);
+    }
 }

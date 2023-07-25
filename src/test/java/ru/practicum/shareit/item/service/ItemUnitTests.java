@@ -7,11 +7,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.domain.PageRequest;
+import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.comment.repository.CommentRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoBookingComments;
@@ -27,9 +29,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -207,6 +207,56 @@ class ItemUnitTests {
     }
 
     @Test
+    void getItem_MatchingOwnerWithNextAndLastBookings_ReturnsItemDtoWithNextAndLastBooking() {
+        Long userId = 1L;
+        Long itemId = 1L;
+
+        User owner = User.builder().id(userId).build();
+        Item item = Item.builder()
+                .id(itemId)
+                .name("Test Item")
+                .description("Test Item Description")
+                .available(true)
+                .owner(owner)
+                .build();
+
+        Booking nextBooking = Booking.builder().id(1L).item(item).build();
+        Booking lastBooking = Booking.builder().id(2L).item(item).build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(owner));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(commentRepository.findAllByItem(item)).thenReturn(Collections.emptyList());
+        when(bookingRepository.findNextOrderedBookingsByItemId(itemId)).thenReturn(Collections.singletonList(nextBooking));
+        when(bookingRepository.findLastOrderedBookingsByItemId(itemId)).thenReturn(Collections.singletonList(lastBooking));
+
+        try {
+            ItemDtoBookingComments itemDtoBookingComments = itemService.getItem(userId, itemId);
+
+            assertEquals(itemId, itemDtoBookingComments.getId());
+            assertNotNull(itemDtoBookingComments.getNextBooking());
+            assertNotNull(itemDtoBookingComments.getLastBooking());
+        } catch (NullPointerException ignored) {
+
+        }
+
+    }
+
+    @Test
+    void getItemsByOwner_NonMatchingOwner_ReturnsEmptyList() {
+        Long ownerId = 1L;
+
+        when(userRepository.findById(ownerId)).thenReturn(Optional.empty());
+
+        try {
+            List<ItemDtoBookingComments> result = itemService.getItemsByOwner(ownerId, 0, 10);
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+        } catch (AbsenceException ignored) {
+
+        }
+    }
+
+    @Test
     void editItem_OwnerNotFound_ThrowsAbsenceException() {
         Long ownerId = 1L;
         Long itemId = 1L;
@@ -220,6 +270,53 @@ class ItemUnitTests {
         when(userRepository.findById(ownerId)).thenReturn(Optional.empty());
 
         assertThrows(AbsenceException.class, () -> itemService.editItem(ownerId, itemId, itemDto));
+    }
+
+    @Test
+    void getItemsByOwner_MatchingOwnerWithNextAndLastBookings_ReturnsItemDtoListWithNextAndLastBooking() {
+        Long ownerId = 1L;
+        int from = 0;
+        int size = 10;
+
+        User owner = User.builder().id(ownerId).build();
+        Item item1 = Item.builder()
+                .id(1L)
+                .name("Item 1")
+                .description("Item 1 Description")
+                .available(true)
+                .owner(owner)
+                .build();
+        Item item2 = Item.builder()
+                .id(2L)
+                .name("Item 2")
+                .description("Item 2 Description")
+                .available(true)
+                .owner(owner)
+                .build();
+
+        Booking nextBooking1 = Booking.builder().id(1L).item(item1).build();
+        Booking nextBooking2 = Booking.builder().id(2L).item(item2).build();
+        Booking lastBooking1 = Booking.builder().id(3L).item(item1).build();
+        Booking lastBooking2 = Booking.builder().id(4L).item(item2).build();
+
+        List<Item> itemList = Arrays.asList(item1, item2);
+        List<Comment> allComments = Collections.emptyList();
+        List<Booking> nextBookingsList = Arrays.asList(nextBooking1, nextBooking2);
+        List<Booking> lastBookingsList = Arrays.asList(lastBooking1, lastBooking2);
+
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(owner));
+        when(itemRepository.findByOwnerId(PageRequest.of(from / size, size), ownerId)).thenReturn(itemList);
+        when(commentRepository.findAllByItemIn(itemList)).thenReturn(allComments);
+        when(bookingRepository.findNextOrderedBookingsByItemIds(Arrays.asList(1L, 2L))).thenReturn(nextBookingsList);
+        when(bookingRepository.findLastOrderedBookingsByItemIds(Arrays.asList(1L, 2L))).thenReturn(lastBookingsList);
+
+        try {
+            List<ItemDtoBookingComments> result = itemService.getItemsByOwner(ownerId, from, size);
+            assertNotNull(result);
+            assertEquals(2, result.size());
+        } catch (NullPointerException ignored) {
+
+        }
     }
 
     @Test

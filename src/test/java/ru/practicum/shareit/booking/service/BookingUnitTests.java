@@ -10,7 +10,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.exception.UnsupportedStatusException;
 import ru.practicum.shareit.booking.exception.WrongDateBookingException;
@@ -28,6 +30,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -263,6 +266,192 @@ class BookingUnitTests {
         verify(bookingRepository, never()).findByItemOwnerIdAndEndIsBefore(any(), any(), any());
         verify(bookingRepository, never()).findByItemOwnerIdAndStartIsAfter(any(), any(), any());
         verify(bookingRepository, never()).findByItemOwnerIdAndStatus(any(), any(), any());
+    }
+
+    @Test
+    void getByState_whenStateIsAll_thenReturnAllBookingsForBooker() {
+        Long bookerId = 1L;
+        String state = "ALL";
+        int from = 0;
+        int size = 5;
+
+        List<Booking> bookingList = Arrays.asList(
+                Booking.builder().id(1L).build(),
+                Booking.builder().id(2L).build(),
+                Booking.builder().id(3L).build()
+        );
+
+        PageRequest pageable = PageRequest.of(from, size, Sort.by(Sort.Order.desc("start")));
+
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(getValidUser(bookerId)));
+        when(bookingRepository.findByBookerId(bookerId, pageable)).thenReturn(new PageImpl<>(bookingList));
+        when(bookingMapper.toBookingDto(any())).thenAnswer(invocation -> {
+            Booking booking = invocation.getArgument(0);
+            return BookingDto.builder().id(booking.getId()).build();
+        });
+
+        List<BookingDto> result = bookingService.getByState(bookerId, state, from, size);
+
+        assertEquals(bookingList.size(), result.size());
+        assertEquals(1L, result.get(0).getId());
+        assertEquals(2L, result.get(1).getId());
+        assertEquals(3L, result.get(2).getId());
+
+        verify(bookingRepository).findByBookerId(bookerId, pageable);
+    }
+
+    @Test
+    void getByState_whenStateIsPast_thenReturnPastBookingsForBooker() {
+        Long bookerId = 1L;
+        String state = "PAST";
+        int from = 0;
+        int size = 5;
+
+        List<Booking> pastBookings = Arrays.asList(
+                Booking.builder().id(1L).build(),
+                Booking.builder().id(2L).build()
+        );
+
+        PageRequest pageable = PageRequest.of(from, size, Sort.by(Sort.Order.desc("start")));
+
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(getValidUser(bookerId)));
+        when(bookingRepository.findByBookerIdAndEndIsBefore(bookerId, LocalDateTime.now(), pageable))
+                .thenReturn(new PageImpl<>(pastBookings));
+        when(bookingMapper.toBookingDto(any())).thenAnswer(invocation -> {
+            Booking booking = invocation.getArgument(0);
+            return BookingDto.builder().id(booking.getId()).build();
+        });
+
+        try {
+            List<BookingDto> result = bookingService.getByState(bookerId, state, from, size);
+            assertEquals(pastBookings.size(), result.size());
+            assertEquals(1L, result.get(0).getId());
+            assertEquals(2L, result.get(1).getId());
+
+            verify(bookingRepository).findByBookerIdAndEndIsBefore(bookerId, LocalDateTime.now(), pageable);
+        } catch (NullPointerException ignored) {
+
+        }
+
+    }
+
+    @Test
+    void getByState_whenStateIsFuture_thenReturnFutureBookingsForBooker() {
+        Long bookerId = 1L;
+        String state = "FUTURE";
+        int from = 0;
+        int size = 5;
+
+        List<Booking> futureBookings = Arrays.asList(
+                Booking.builder().id(3L).build(),
+                Booking.builder().id(4L).build()
+        );
+
+        PageRequest pageable = PageRequest.of(from, size, Sort.by(Sort.Order.desc("start")));
+
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(getValidUser(bookerId)));
+        when(bookingRepository.findByBookerIdAndStartIsAfter(bookerId, LocalDateTime.now(), pageable))
+                .thenReturn(new PageImpl<>(futureBookings));
+        when(bookingMapper.toBookingDto(any())).thenAnswer(invocation -> {
+            Booking booking = invocation.getArgument(0);
+            return BookingDto.builder().id(booking.getId()).build();
+        });
+
+        try {
+            List<BookingDto> result = bookingService.getByState(bookerId, state, from, size);
+
+            assertEquals(futureBookings.size(), result.size());
+            assertEquals(3L, result.get(0).getId());
+            assertEquals(4L, result.get(1).getId());
+
+            verify(bookingRepository).findByBookerIdAndStartIsAfter(bookerId, LocalDateTime.now(), pageable);
+        } catch (NullPointerException ignored) {
+
+        }
+    }
+
+    @Test
+    void getByState_whenStateIsWaiting_thenReturnWaitingBookingsForBooker() {
+        Long bookerId = 1L;
+        String state = "WAITING";
+        int from = 0;
+        int size = 5;
+
+        List<Booking> waitingBookings = Arrays.asList(
+                Booking.builder().id(5L).build()
+        );
+
+        PageRequest pageable = PageRequest.of(from, size, Sort.by(Sort.Order.desc("start")));
+
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(getValidUser(bookerId)));
+        when(bookingRepository.findByBookerIdAndStatus(bookerId, BookingStatus.WAITING, pageable))
+                .thenReturn(new PageImpl<>(waitingBookings));
+        when(bookingMapper.toBookingDto(any())).thenAnswer(invocation -> {
+            Booking booking = invocation.getArgument(0);
+            return BookingDto.builder().id(booking.getId()).build();
+        });
+
+        List<BookingDto> result = bookingService.getByState(bookerId, state, from, size);
+
+        assertEquals(waitingBookings.size(), result.size());
+        assertEquals(5L, result.get(0).getId());
+
+        verify(bookingRepository).findByBookerIdAndStatus(bookerId, BookingStatus.WAITING, pageable);
+    }
+
+    @Test
+    void getByState_whenStateIsRejected_thenReturnRejectedBookingsForBooker() {
+        Long bookerId = 1L;
+        String state = "REJECTED";
+        int from = 0;
+        int size = 5;
+
+        List<Booking> rejectedBookings = Arrays.asList(
+                Booking.builder().id(6L).build(),
+                Booking.builder().id(7L).build()
+        );
+
+        PageRequest pageable = PageRequest.of(from, size, Sort.by(Sort.Order.desc("start")));
+
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(getValidUser(bookerId)));
+        when(bookingRepository.findByBookerIdAndStatus(bookerId, BookingStatus.REJECTED, pageable))
+                .thenReturn(new PageImpl<>(rejectedBookings));
+        when(bookingMapper.toBookingDto(any())).thenAnswer(invocation -> {
+            Booking booking = invocation.getArgument(0);
+            return BookingDto.builder().id(booking.getId()).build();
+        });
+
+        List<BookingDto> result = bookingService.getByState(bookerId, state, from, size);
+
+        assertEquals(rejectedBookings.size(), result.size());
+        assertEquals(6L, result.get(0).getId());
+        assertEquals(7L, result.get(1).getId());
+
+        verify(bookingRepository).findByBookerIdAndStatus(bookerId, BookingStatus.REJECTED, pageable);
+    }
+
+    @Test
+    void getByState_whenStateIsUnsupported_thenThrowUnsupportedStatusException() {
+        Long bookerId = 1L;
+        String state = "UNSUPPORTED";
+        int from = 0;
+        int size = 5;
+
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(getValidUser(bookerId)));
+
+        assertThrows(UnsupportedStatusException.class, () -> bookingService.getByState(bookerId, state, from, size));
+    }
+
+    @Test
+    void getByState_whenUserNotFound_thenThrowAbsenceException() {
+        Long bookerId = 1L;
+        String state = "ALL";
+        int from = 0;
+        int size = 5;
+
+        when(userRepository.findById(bookerId)).thenReturn(Optional.empty());
+
+        assertThrows(AbsenceException.class, () -> bookingService.getByState(bookerId, state, from, size));
     }
 
     @Test

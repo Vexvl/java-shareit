@@ -9,7 +9,6 @@ import ru.practicum.shareit.booking.exception.UnsupportedStatusException;
 import ru.practicum.shareit.booking.exception.WrongDateBookingException;
 import ru.practicum.shareit.item.exception.*;
 import ru.practicum.shareit.user.exception.EmailDuplicateException;
-import ru.practicum.shareit.user.exception.InvalidRequestException;
 
 import java.util.Map;
 
@@ -49,12 +48,6 @@ public class ExceptionsHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleAccessDeniedException(WrongDateBookingException e) {
         return Map.of("WrongDateBookingException", e.getMessage());
-    }
-
-    @ExceptionHandler(InvalidRequestException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleInvalidRequestException(InvalidRequestException e) {
-        return Map.of("InvalidRequestException", e.getMessage());
     }
 
     @ExceptionHandler(EmailDuplicateException.class)

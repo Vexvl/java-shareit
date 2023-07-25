@@ -14,7 +14,6 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Random;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -162,53 +161,5 @@ class BookingIntegrationTests {
                 .available(true)
                 .owner(owner)
                 .build());
-    }
-
-    private Map<String, Long> saveOneBookingForEachBookingStateSearchDtoWithSameBookerAndItemOwner() {
-        User itemOwner = saveRandomUser();
-        User booker = saveRandomUser();
-
-        bookingRepository.save(Booking.builder()
-                .item(saveRandomItem(itemOwner))
-                .booker(booker)
-                .start(LocalDateTime.now().minusHours(1))
-                .end(LocalDateTime.now().plusHours(1))
-                .status(BookingStatus.APPROVED)
-                .build());
-
-        bookingRepository.save(Booking.builder()
-                .item(saveRandomItem(itemOwner))
-                .booker(booker)
-                .start(LocalDateTime.now().minusHours(2))
-                .end(LocalDateTime.now().minusHours(1))
-                .status(BookingStatus.APPROVED)
-                .build());
-
-        bookingRepository.save(Booking.builder()
-                .item(saveRandomItem(itemOwner))
-                .booker(booker)
-                .start(LocalDateTime.now().plusHours(1))
-                .end(LocalDateTime.now().plusHours(2))
-                .status(BookingStatus.APPROVED)
-                .build());
-
-        bookingRepository.save(Booking.builder()
-                .item(saveRandomItem(itemOwner))
-                .booker(booker)
-                .start(LocalDateTime.now().plusHours(1))
-                .end(LocalDateTime.now().plusHours(2))
-                .status(BookingStatus.WAITING)
-                .build());
-
-        bookingRepository.save(Booking.builder()
-                .item(saveRandomItem(itemOwner))
-                .booker(booker)
-                .start(LocalDateTime.now().plusHours(1))
-                .end(LocalDateTime.now().plusHours(2))
-                .status(BookingStatus.REJECTED)
-                .build());
-
-        return Map.of("ItemOwnerId", itemOwner.getId(),
-                "BookerId", booker.getId());
     }
 }

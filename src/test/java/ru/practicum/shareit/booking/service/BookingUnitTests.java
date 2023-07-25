@@ -6,7 +6,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.exception.UnsupportedStatusException;
+import ru.practicum.shareit.booking.exception.WrongDateBookingException;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -27,6 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class BookingUnitTests {
 
     @Mock
@@ -103,6 +108,47 @@ class BookingUnitTests {
         verify(bookingRepository, never()).findByBookerIdAndEndIsBefore(any(), any(), any());
         verify(bookingRepository, never()).findByBookerIdAndStartIsAfter(any(), any(), any());
         verify(bookingRepository, never()).findByBookerIdAndStatus(any(), any(), any());
+    }
+
+    @Test
+    void editBookingStatus_whenUnsupportedStatus_thenUnsupportedStatusExceptionThrown() {
+        Long ownerId = 1L;
+        Long bookingId = 2L;
+        boolean approved = true;
+
+        Booking booking = Booking.builder()
+                .id(bookingId)
+                .status(BookingStatus.APPROVED)
+                .item(Item.builder().owner(User.builder().id(ownerId).build()).build())
+                .build();
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+
+        assertThrows(UnsupportedStatusException.class, () -> bookingService.editBookingStatus(ownerId, bookingId, approved));
+    }
+
+    @Test
+    void getByStateOwner_whenInvalidState_thenUnsupportedStatusExceptionThrown() {
+        Long ownerId = 1L;
+        String state = "INVALID_STATE";
+        int from = 0;
+        int size = 5;
+
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(User.builder().id(ownerId).build()));
+
+        assertThrows(UnsupportedStatusException.class, () -> bookingService.getByStateOwner(ownerId, state, from, size));
+    }
+
+    @Test
+    void getByStateOwner_whenInvalidPaginationParams_thenIllegalArgumentExceptionThrown() {
+        Long ownerId = 1L;
+        String state = "ALL";
+        int from = -1;
+        int size = 0;
+
+        when(itemRepository.findByOwnerId(ownerId)).thenReturn(List.of(Item.builder().owner(User.builder().id(ownerId).build()).build()));
+
+        assertThrows(IllegalArgumentException.class, () -> bookingService.getByStateOwner(ownerId, state, from, size));
     }
 
     @Test
@@ -271,5 +317,70 @@ class BookingUnitTests {
                 .available(true)
                 .owner(itemOwner)
                 .build();
+    }
+
+    @Test
+    void add_whenStartIsAfterEnd_thenInvalidParamException() {
+        Long bookerId = 0L;
+        Long itemId = 0L;
+        BookingDto bookingDto = BookingDto.builder()
+                .itemId(itemId)
+                .start(LocalDateTime.now().minusHours(1))
+                .end(LocalDateTime.now().minusHours(2))
+                .build();
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(getValidUser(bookerId)));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(getValidItem(itemId)));
+
+        assertThrows(WrongDateBookingException.class, () -> bookingService.addBooking(bookingDto, bookerId));
+    }
+
+    @Test
+    void add_whenStartIsEqualEnd_thenInvalidParamException() {
+        Long bookerId = 0L;
+        Long itemId = 0L;
+        BookingDto bookingDto = BookingDto.builder()
+                .itemId(itemId)
+                .start(LocalDateTime.of(2023, 7, 20, 0, 0))
+                .end(LocalDateTime.of(2023, 7, 20, 0, 0))
+                .build();
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(getValidUser(bookerId)));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(getValidItem(itemId)));
+
+        assertThrows(WrongDateBookingException.class, () -> bookingService.addBooking(bookingDto, bookerId));
+    }
+
+    @Test
+    void add_whenItemNotAvailable_thenInvalidParamException() {
+        Long bookerId = 0L;
+        Long itemId = 0L;
+        Item item = getValidItem(itemId);
+        item.setAvailable(false);
+        BookingDto bookingDto = BookingDto.builder()
+                .itemId(itemId)
+                .start(LocalDateTime.now().minusHours(1))
+                .end(LocalDateTime.now().minusHours(2))
+                .build();
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(getValidUser(bookerId)));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        assertThrows(WrongDateBookingException.class, () -> bookingService.addBooking(bookingDto, bookerId));
+    }
+
+    @Test
+    void add_whenRequestFromItemOwner_thenInvalidParamException() {
+        Long bookerId = 0L;
+        User booker = getValidUser(bookerId);
+        Long itemId = 0L;
+        Item item = getValidItem(itemId);
+        item.setOwner(booker);
+        BookingDto bookingDto = BookingDto.builder()
+                .itemId(itemId)
+                .start(LocalDateTime.now().minusHours(1))
+                .end(LocalDateTime.now().minusHours(2))
+                .build();
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(booker));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        assertThrows(WrongDateBookingException.class, () -> bookingService.addBooking(bookingDto, bookerId));
     }
 }

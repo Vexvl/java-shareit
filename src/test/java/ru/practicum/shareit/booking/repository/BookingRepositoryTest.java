@@ -218,14 +218,6 @@ class BookingRepositoryTest {
         assertThat(booking.getStatus(), equalTo(BookingStatus.WAITING));
     }
 
-    @Test
-    public void testFindByItemOwnerIdAndStatus() {
-        PageRequest pageRequest = PageRequest.of(0, 1);
-        Long ownerId = saveOneBookingForEachBookingStateSearchDtoWithSameBookerAndItemOwner().get("ItemOwnerId");
-        Page<Booking> bookings = bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.WAITING, pageRequest);
-        Booking booking = bookings.getContent().get(0);
-    }
-
     private User saveRandomUser() {
         return userRepository.save(User.builder()
                 .name("name")

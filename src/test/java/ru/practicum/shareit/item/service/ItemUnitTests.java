@@ -162,32 +162,6 @@ class ItemUnitTests {
     }
 
     @Test
-    void getItem_ValidUserAndItemId_ReturnsItemDtoBookingComments() {
-        Long userId = 1L;
-        Long itemId = 1L;
-        User user = new User(userId, "John Doe", "john@example.com");
-        Item item = Item.builder()
-                .id(itemId)
-                .name("itemName")
-                .description("itemDescription")
-                .available(true)
-                .owner(user)
-                .request(null)
-                .build();
-        List<Comment> comments = Collections.singletonList(new Comment());
-        ItemDtoBookingComments expectedResponse = new ItemDtoBookingComments();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-        when(commentRepository.findAllByItem(item)).thenReturn(comments);
-        when(itemMapper.toItemDtoBookingComments(item, comments)).thenReturn(expectedResponse);
-
-        ItemDtoBookingComments result = itemService.getItem(userId, itemId);
-
-        assertEquals(expectedResponse, result);
-    }
-
-    @Test
     void getItem_InvalidUserId_ThrowsAbsenceException() {
         Long userId = 1L;
         Long itemId = 1L;

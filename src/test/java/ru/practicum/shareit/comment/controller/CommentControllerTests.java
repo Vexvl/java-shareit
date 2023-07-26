@@ -1,6 +1,7 @@
 package ru.practicum.shareit.comment.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +74,8 @@ public class CommentControllerTests {
     }
 
     @Test
-    void addComment() throws Exception {
+    @SneakyThrows
+    void addComment() {
         Long itemId = 1L;
         when(commentService.addComment(anyLong(), anyLong(), any(CommentDto.class))).thenReturn(commentDto);
         String responseJson = mvc.perform(post("/items/{itemId}/comment", itemId)

@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +72,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    void addNewItemTest() throws Exception {
+    @SneakyThrows
+    void addNewItemTest() {
         when(itemService.addItem(anyLong(), any(ItemDto.class))).thenReturn(itemDto);
 
         mvc.perform(post("/items")
@@ -89,7 +91,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    void getAllUserItemTest() throws Exception {
+    @SneakyThrows
+    void getAllUserItemTest() {
         when(itemService.getItemsByOwner(anyLong(), anyInt(), anyInt())).thenReturn(List.of(itemDtoBookingComments));
 
         mvc.perform(get("/items")
@@ -104,7 +107,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    void getItemByIdTest() throws Exception {
+    @SneakyThrows
+    void getItemByIdTest() {
         when(itemService.getItem(anyLong(), anyLong())).thenReturn(itemDtoBookingComments);
 
         mvc.perform(get("/items/{itemId}", 1L)

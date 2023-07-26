@@ -1,7 +1,8 @@
-package ru.practicum.shareit.ItemRequest.controller;
+package ru.practicum.shareit.request.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.request.controller.ItemRequestController;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
@@ -59,7 +59,8 @@ public class ItemRequestControllerTests {
     }
 
     @Test
-    void addNewItemRequestTest() throws Exception {
+    @SneakyThrows
+    void addNewItemRequestTest() {
         when(requestService.addItemRequest(any(ItemRequestDto.class), anyLong())).thenReturn(itemRequestDto);
 
         mvc.perform(post("/requests")
@@ -77,7 +78,8 @@ public class ItemRequestControllerTests {
     }
 
     @Test
-    void getAllUserItemTest() throws Exception {
+    @SneakyThrows
+    void getAllUserItemTest() {
         when(requestService.getOwnerResponse(anyLong())).thenReturn(List.of(itemRequestDto));
 
         mvc.perform(get("/requests")
@@ -91,7 +93,8 @@ public class ItemRequestControllerTests {
     }
 
     @Test
-    void getOtherItemRequest() throws Exception {
+    @SneakyThrows
+    void getOtherItemRequest() {
         when(requestService.getAllNotOwner(anyLong(), anyInt(), anyInt())).thenReturn(List.of(itemRequestDto));
 
         mvc.perform(get("/requests/all")
@@ -105,7 +108,8 @@ public class ItemRequestControllerTests {
     }
 
     @Test
-    void getItemRequestById() throws Exception {
+    @SneakyThrows
+    void getItemRequestById() {
         when(requestService.getItemRequestById(anyLong(), anyLong())).thenReturn(itemRequestDto);
 
         mvc.perform(get("/requests/{requestId}", 1L)

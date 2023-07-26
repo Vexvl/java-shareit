@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,8 @@ public class BookingControllerTests {
     }
 
     @Test
-    void addNewBookingTest() throws Exception {
+    @SneakyThrows
+    void addNewBookingTest() {
         when(bookingService.addBooking(any(BookingDto.class), anyLong()))
                 .thenReturn(bookingDto);
 
@@ -90,7 +92,8 @@ public class BookingControllerTests {
     }
 
     @Test
-    void addNewBookingWhenAccessDeniedExceptionTest() throws Exception {
+    @SneakyThrows
+    void addNewBookingWhenAccessDeniedExceptionTest() {
         when(bookingService.addBooking(any(BookingDto.class), anyLong()))
                 .thenThrow(new AccessDeniedException("AccessDeniedException"));
 
@@ -104,7 +107,8 @@ public class BookingControllerTests {
     }
 
     @Test
-    void addNewBookingWhenTimeBookingIncorrectTest() throws Exception {
+    @SneakyThrows
+    void addNewBookingWhenTimeBookingIncorrectTest() {
         when(bookingService.addBooking(any(BookingDto.class), anyLong()))
                 .thenThrow(new WrongDateBookingException("WrongDateBookingException"));
 
@@ -118,7 +122,8 @@ public class BookingControllerTests {
     }
 
     @Test
-    void editItemTest() throws Exception {
+    @SneakyThrows
+    void editItemTest() {
         when(bookingService.editBookingStatus(anyLong(), anyLong(), anyBoolean()))
                 .thenReturn(bookingDto);
 
@@ -135,7 +140,8 @@ public class BookingControllerTests {
     }
 
     @Test
-    void getBookingInfoByIdTest() throws Exception {
+    @SneakyThrows
+    void getBookingInfoByIdTest() {
         when(bookingService.getById(anyLong(), anyLong()))
                 .thenReturn(bookingDto);
 
@@ -151,7 +157,8 @@ public class BookingControllerTests {
     }
 
     @Test
-    void getUserItemsBookingTest() throws Exception {
+    @SneakyThrows
+    void getUserItemsBookingTest() {
         when(bookingService.getByStateOwner(anyLong(), anyString(), anyInt(), anyInt()))
                 .thenReturn(List.of(bookingDto));
 

@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.exception.AbsenceException;
 import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
@@ -18,8 +19,10 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,10 +49,15 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public List<ItemRequestDto> getOwnerResponse(Long userId) {
         User requester = userRepository.findById(userId)
                 .orElseThrow(() -> new AbsenceException("User not exists"));
+
         List<ItemRequest> itemRequests = itemRequestRepository.findAllByRequester(requester);
+        List<Long> requestIds = itemRequests.stream().map(ItemRequest::getId).collect(Collectors.toList());
+        Map<Long, List<Item>> itemsByRequestId = itemRepository.findAllByRequestIn(requestIds).stream()
+                .collect(Collectors.groupingBy(Item::getRequest));
+
         return itemRequests.stream()
                 .map(itemRequest -> itemRequestMapper.toItemRequestDto(itemRequest,
-                        itemRepository.findAllByRequest(itemRequest.getId())
+                        itemsByRequestId.getOrDefault(itemRequest.getId(), Collections.emptyList())
                                 .stream()
                                 .map(itemMapper::toItemDto)
                                 .collect(Collectors.toList())))
@@ -63,18 +71,25 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         if (from < 0) {
             throw new IndexOutOfBoundsException();
         }
+
         User user = userRepository.findById(ownerId)
                 .orElseThrow(() -> new AbsenceException("User not exists"));
+
         Pageable pageable = PageRequest.of(from / size, size);
+
         List<ItemRequest> itemRequests = itemRequestRepository.findAllByRequesterNot(user, pageable);
-        return itemRequests.stream()
-                .map(itemRequest -> itemRequestMapper.toItemRequestDto(itemRequest,
-                        itemRepository.findAllByRequest(itemRequest.getId())
-                                .stream()
-                                .map(itemMapper::toItemDto)
-                                .collect(Collectors.toList())))
+
+        List<ItemRequestDto> itemRequestDtos = itemRequests.stream().map(itemRequest -> {
+                    List<Item> items = itemRepository.findAllByRequest(itemRequest.getId());
+                    List<ItemDto> itemDtos = items.stream()
+                            .map(itemMapper::toItemDto)
+                            .collect(Collectors.toList());
+                    return itemRequestMapper.toItemRequestDto(itemRequest, itemDtos);
+                })
                 .sorted(Comparator.comparing(ItemRequestDto::getCreated).reversed())
                 .collect(Collectors.toList());
+
+        return itemRequestDtos;
     }
 
     @Override

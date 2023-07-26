@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.service;
 
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,6 +89,7 @@ class BookingUnitTests {
     }
 
     @Test
+    @SneakyThrows
     void add_whenUserNotFound_thenAbsenceExceptionThrown() {
         BookingDto bookingDto = BookingDto.builder().build();
         when(userRepository.findById(bookerId)).thenReturn(Optional.empty());
@@ -95,6 +97,7 @@ class BookingUnitTests {
     }
 
     @Test
+    @SneakyThrows
     void add_whenItemNotFound_thenAbsenceExceptionThrown() {
         BookingDto bookingDto = BookingDto.builder().itemId(itemId).build();
         when(userRepository.findById(bookerId)).thenReturn(Optional.of(booker));
@@ -103,6 +106,7 @@ class BookingUnitTests {
     }
 
     @Test
+    @SneakyThrows
     void changeStatus_whenBookingNotFound_thenAbsenceExceptionThrown() {
         Long bookingOwnerId = 1L;
         boolean approved = true;
@@ -645,6 +649,7 @@ class BookingUnitTests {
     }
 
     @Test
+    @SneakyThrows
     void getByStateBooker_whenInvalidState_thenInvalidParamExceptionThrown() {
         Long bookerId = 0L;
         String state = "SomeText";
@@ -655,6 +660,7 @@ class BookingUnitTests {
     }
 
     @Test
+    @SneakyThrows
     void getByStateBooker_whenBookerNotFound_thenIllegalArgumentExceptionThrown() {
         Long bookerId = 0L;
         String state = "all";
@@ -823,6 +829,7 @@ class BookingUnitTests {
     }
 
     @Test
+    @SneakyThrows
     void getByStateOwner_whenInvalidState_thenInvalidParamExceptionThrown() {
         Long ownerId = 0L;
         String state = "SomeText";
@@ -833,6 +840,7 @@ class BookingUnitTests {
     }
 
     @Test
+    @SneakyThrows
     void getByStateOwner_whenOwnerNotFound_thenNotIllegalArgumentExceptionThrown() {
         Long ownerId = 0L;
         String state = "all";
@@ -844,6 +852,7 @@ class BookingUnitTests {
     }
 
     @Test
+    @SneakyThrows
     void getByStateOwner_whenOwnerHasNoItems_thenIllegalArgumentExceptionThrown2() {
         Long ownerId = 0L;
         String state = "all";

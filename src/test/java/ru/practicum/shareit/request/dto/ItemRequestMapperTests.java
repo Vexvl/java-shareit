@@ -1,4 +1,4 @@
-package ru.practicum.shareit.ItemRequest.dto;
+package ru.practicum.shareit.request.dto;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -6,7 +6,6 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.dto.UserDto;

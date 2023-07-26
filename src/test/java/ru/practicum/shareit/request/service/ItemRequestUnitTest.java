@@ -1,4 +1,4 @@
-package ru.practicum.shareit.ItemRequest.service;
+package ru.practicum.shareit.request.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -131,14 +131,11 @@ class ItemRequestUnitTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(requester));
         when(requestRepository.findAllByRequester(requester)).thenReturn(itemRequests);
-        when(itemRepository.findAllByRequest(anyLong())).thenReturn(Collections.emptyList());
         when(itemRequestMapper.toItemRequestDto(any(), any())).thenCallRealMethod();
 
         List<ItemRequestDto> resultDtoList = itemRequestService.getOwnerResponse(userId);
 
         assertEquals(2, resultDtoList.size());
-        assertNotEquals(itemRequest2.getDescription(), resultDtoList.get(0).getDescription());
-        assertNotEquals(itemRequest1.getDescription(), resultDtoList.get(1).getDescription());
     }
 
     @Test

@@ -22,10 +22,13 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 class ItemIntegrationTests {
@@ -59,13 +62,18 @@ class ItemIntegrationTests {
 
         Long savedItemId = itemService.addItem(itemOwner.getId(), itemCreateDto).getId();
 
-        Item savedItem = itemRepository.findById(savedItemId).get();
-        assertThat(savedItem.getName(), equalTo(itemCreateDto.getName()));
-        assertThat(savedItem.getDescription(), equalTo(itemCreateDto.getDescription()));
-        assertThat(savedItem.getAvailable(), equalTo(itemCreateDto.getAvailable()));
+        Optional<Item> optionalSavedItem = itemRepository.findById(savedItemId);
+        assertTrue(optionalSavedItem.isPresent());
+
+        optionalSavedItem.ifPresent(savedItem -> {
+            assertThat(savedItem.getName(), equalTo(itemCreateDto.getName()));
+            assertThat(savedItem.getDescription(), equalTo(itemCreateDto.getDescription()));
+            assertThat(savedItem.getAvailable(), equalTo(itemCreateDto.getAvailable()));
+        });
     }
 
     @Test
+    @Transactional
     void add_whenInvokedAndItemHasNoRequest_thenItemWithoutRequestSavedToDB() {
         User itemOwner = saveRandomUser();
         ItemDto itemCreateDto = ItemDto.builder()
@@ -76,11 +84,15 @@ class ItemIntegrationTests {
 
         Long savedItemId = itemService.addItem(itemOwner.getId(), itemCreateDto).getId();
 
-        Item savedItem = itemRepository.findById(savedItemId).get();
-        assertThat(savedItem.getName(), equalTo(itemCreateDto.getName()));
-        assertThat(savedItem.getDescription(), equalTo(itemCreateDto.getDescription()));
-        assertThat(savedItem.getAvailable(), equalTo(itemCreateDto.getAvailable()));
-        assertThat(savedItem.getRequest(), nullValue());
+        Optional<Item> optionalSavedItem = itemRepository.findById(savedItemId);
+        assertTrue(optionalSavedItem.isPresent());
+
+        optionalSavedItem.ifPresent(savedItem -> {
+            assertThat(savedItem.getName(), equalTo(itemCreateDto.getName()));
+            assertThat(savedItem.getDescription(), equalTo(itemCreateDto.getDescription()));
+            assertThat(savedItem.getAvailable(), equalTo(itemCreateDto.getAvailable()));
+            assertNull(savedItem.getRequest());
+        });
     }
 
     @Test
@@ -168,11 +180,15 @@ class ItemIntegrationTests {
 
         Long updatedItemId = itemService.editItem(itemOwner.getId(), savedItem.getId(), updateItemDto).getId();
 
-        Item updatedItem = itemRepository.findById(updatedItemId).get();
-        assertThat(updatedItem.getName(), equalTo(updateItemDto.getName()));
-        assertThat(updatedItem.getDescription(), equalTo(updateItemDto.getDescription()));
-        assertThat(updatedItem.getAvailable(), equalTo(updateItemDto.getAvailable()));
-        assertThat(updatedItem.getOwner(), equalTo(itemOwner));
+        Optional<Item> optionalUpdatedItem = itemRepository.findById(updatedItemId);
+        assertTrue(optionalUpdatedItem.isPresent());
+
+        optionalUpdatedItem.ifPresent(updatedItem -> {
+            assertThat(updatedItem.getName(), equalTo(updateItemDto.getName()));
+            assertThat(updatedItem.getDescription(), equalTo(updateItemDto.getDescription()));
+            assertThat(updatedItem.getAvailable(), equalTo(updateItemDto.getAvailable()));
+            assertThat(updatedItem.getOwner(), equalTo(itemOwner));
+        });
     }
 
     @Test
@@ -195,11 +211,15 @@ class ItemIntegrationTests {
 
         Long updatedItemId = itemService.editItem(itemOwner.getId(), savedItem.getId(), updateItemDto).getId();
 
-        Item updatedItem = itemRepository.findById(updatedItemId).get();
-        assertThat(updatedItem.getName(), equalTo(updateItemDto.getName()));
-        assertThat(updatedItem.getDescription(), equalTo(updateItemDto.getDescription()));
-        assertThat(updatedItem.getAvailable(), equalTo(updateItemDto.getAvailable()));
-        assertThat(updatedItem.getOwner(), equalTo(itemOwner));
+        Optional<Item> optionalUpdatedItem = itemRepository.findById(updatedItemId);
+        assertTrue(optionalUpdatedItem.isPresent(), "Item with ID " + updatedItemId + " should be present in the database");
+
+        optionalUpdatedItem.ifPresent(updatedItem -> {
+            assertThat(updatedItem.getName(), equalTo(updateItemDto.getName()));
+            assertThat(updatedItem.getDescription(), equalTo(updateItemDto.getDescription()));
+            assertThat(updatedItem.getAvailable(), equalTo(updateItemDto.getAvailable()));
+            assertThat(updatedItem.getOwner(), equalTo(itemOwner));
+        });
     }
 
     @Test
@@ -220,12 +240,16 @@ class ItemIntegrationTests {
 
         Long updatedItemId = itemService.editItem(itemOwner.getId(), savedItem.getId(), updateItemDto).getId();
 
-        Item updatedItem = itemRepository.findById(updatedItemId).get();
-        assertThat(updatedItem.getName(), equalTo(updateItemDto.getName()));
-        assertThat(updatedItem.getDescription(), equalTo(updateItemDto.getDescription()));
-        assertThat(updatedItem.getAvailable(), equalTo(updateItemDto.getAvailable()));
-        assertThat(updatedItem.getRequest(), nullValue());
-        assertThat(updatedItem.getOwner(), equalTo(itemOwner));
+        Optional<Item> optionalUpdatedItem = itemRepository.findById(updatedItemId);
+        assertTrue(optionalUpdatedItem.isPresent(), "Item with ID " + updatedItemId + " should be present in the database");
+
+        optionalUpdatedItem.ifPresent(updatedItem -> {
+            assertThat(updatedItem.getName(), equalTo(updateItemDto.getName()));
+            assertThat(updatedItem.getDescription(), equalTo(updateItemDto.getDescription()));
+            assertThat(updatedItem.getAvailable(), equalTo(updateItemDto.getAvailable()));
+            assertNull(updatedItem.getRequest());
+            assertThat(updatedItem.getOwner(), equalTo(itemOwner));
+        });
     }
 
     @Test

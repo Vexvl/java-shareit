@@ -57,6 +57,7 @@ class BookingIntegrationTests {
     }
 
     @Test
+    @Transactional
     void add_whenInvoked_thenBookingDtoReturned() {
         User booker = saveRandomUser();
         Long bookerId = booker.getId();

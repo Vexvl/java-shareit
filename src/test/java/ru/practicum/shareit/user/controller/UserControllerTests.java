@@ -1,6 +1,7 @@
-package ru.practicum.shareit.User.controller;
+package ru.practicum.shareit.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.item.exception.AbsenceException;
-import ru.practicum.shareit.user.controller.UserController;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.exception.EmailDuplicateException;
 import ru.practicum.shareit.user.service.UserService;
@@ -54,7 +54,8 @@ public class UserControllerTests {
     }
 
     @Test
-    void addNewUser() throws Exception {
+    @SneakyThrows
+    void addNewUser() {
         when(userService.addUser(any(UserDto.class))).thenReturn(userDto);
 
         mvc.perform(post("/users")
@@ -69,7 +70,8 @@ public class UserControllerTests {
     }
 
     @Test
-    void addNewButEmailDuplicateException() throws Exception {
+    @SneakyThrows
+    void addNewButEmailDuplicateException() {
         when(userService.addUser(any(UserDto.class))).thenThrow(new EmailDuplicateException("Email already exist"));
 
         mvc.perform(post("/users")
@@ -81,7 +83,8 @@ public class UserControllerTests {
     }
 
     @Test
-    void addNewButEmailNotCorrectTest() throws Exception {
+    @SneakyThrows
+    void addNewButEmailNotCorrectTest() {
         when(userService.addUser(any(UserDto.class))).thenThrow(new ValidationException());
 
         mvc.perform(post("/users")
@@ -93,7 +96,8 @@ public class UserControllerTests {
     }
 
     @Test
-    void getAllUserTest() throws Exception {
+    @SneakyThrows
+    void getAllUserTest() {
         when(userService.getAllUsers()).thenReturn(List.of(userDto));
 
         mvc.perform(get("/users"))
@@ -104,7 +108,8 @@ public class UserControllerTests {
     }
 
     @Test
-    void getUserByIdTest() throws Exception {
+    @SneakyThrows
+    void getUserByIdTest() {
         when(userService.getUser(anyLong())).thenReturn(userDto);
 
         mvc.perform(get("/users/{id}", 1L))
@@ -115,7 +120,8 @@ public class UserControllerTests {
     }
 
     @Test
-    void getUserWhenHisNotExistTest() throws Exception {
+    @SneakyThrows
+    void getUserWhenHisNotExistTest() {
         when(userService.getUser(anyLong())).thenThrow(new AbsenceException("User with id %d does not exist"));
 
         mvc.perform(get("/users/{id}", 999L))
@@ -123,7 +129,8 @@ public class UserControllerTests {
     }
 
     @Test
-    void editUserTest() throws Exception {
+    @SneakyThrows
+    void editUserTest() {
         when(userService.editUser(anyLong(), any(UserDto.class))).thenReturn(userDto);
 
         mvc.perform(patch("/users/{id}", 1L)
@@ -138,7 +145,8 @@ public class UserControllerTests {
     }
 
     @Test
-    void deleteUserTest() throws Exception {
+    @SneakyThrows
+    void deleteUserTest() {
         doNothing().when(userService).deleteUser(anyLong());
 
         mvc.perform(delete("/users/{id}", 1L))

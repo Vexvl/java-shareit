@@ -1,4 +1,4 @@
-package ru.practicum.shareit.comment.service;
+package ru.practicum.shareit.comment.service.impl;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,6 +10,7 @@ import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.comment.mapper.CommentMapper;
 import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.comment.repository.CommentRepository;
+import ru.practicum.shareit.comment.service.CommentService;
 import ru.practicum.shareit.item.exception.AbsenceException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;

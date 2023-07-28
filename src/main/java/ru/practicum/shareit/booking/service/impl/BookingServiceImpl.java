@@ -1,19 +1,21 @@
-package ru.practicum.shareit.booking.service;
+package ru.practicum.shareit.booking.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.exception.InvalidStatusException;
-import ru.practicum.shareit.booking.exception.UnknownStatusException;
+import ru.practicum.shareit.booking.exception.UnsupportedStatusException;
 import ru.practicum.shareit.booking.exception.WrongDateBookingException;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.item.exception.AbsenceException;
 import ru.practicum.shareit.item.exception.AccessDeniedException;
 import ru.practicum.shareit.item.exception.ItemUnavailableException;
@@ -67,7 +69,7 @@ public class BookingServiceImpl implements BookingService {
             throw new AccessDeniedException("Access denied");
         }
         if (!booking.getStatus().equals(BookingStatus.WAITING)) {
-            throw new InvalidStatusException("Invalid status");
+            throw new UnsupportedStatusException("Invalid status");
         }
         if (approved) {
             booking.setStatus(BookingStatus.APPROVED);
@@ -91,71 +93,70 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public List<BookingDto> getByState(Long bookerId, String state) {
+    public List<BookingDto> getByState(Long bookerId, String state, Integer from, Integer size) {
+        PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, sortByStartDesc);
         userRepository.findById(bookerId).orElseThrow(() -> new AbsenceException("User not exists"));
         BookingState bookingState = getBookingState(state);
-        List<Booking> bookingList;
+        Page<Booking> bookingList;
         switch (bookingState) {
             case PAST:
-                bookingList = bookingRepository.findByBookerIdAndEndIsBefore(bookerId, LocalDateTime.now(),
-                        sortByStartDesc);
+                bookingList = bookingRepository.findByBookerIdAndEndIsBefore(bookerId, LocalDateTime.now(), pageable);
                 break;
             case CURRENT:
                 bookingList = bookingRepository.findByBookerIdAndEndIsAfterAndStartIsBefore(bookerId,
-                        LocalDateTime.now(), LocalDateTime.now(), sortByStartDesc);
+                        LocalDateTime.now(), LocalDateTime.now(), pageable);
                 break;
             case FUTURE:
-                bookingList = bookingRepository.findByBookerIdAndStartIsAfter(bookerId, LocalDateTime.now(),
-                        sortByStartDesc);
+                bookingList = bookingRepository.findByBookerIdAndStartIsAfter(bookerId, LocalDateTime.now(), pageable);
                 break;
             case WAITING:
-                bookingList = bookingRepository.findByBookerIdAndStatus(bookerId, BookingStatus.WAITING);
+                bookingList = bookingRepository.findByBookerIdAndStatus(bookerId, BookingStatus.WAITING, pageable);
                 break;
             case REJECTED:
-                bookingList = bookingRepository.findByBookerIdAndStatus(bookerId, BookingStatus.REJECTED);
+                bookingList = bookingRepository.findByBookerIdAndStatus(bookerId, BookingStatus.REJECTED, pageable);
                 break;
             case ALL:
-                bookingList = bookingRepository.findByBookerId(bookerId, sortByStartDesc);
+                bookingList = bookingRepository.findByBookerId(bookerId, pageable);
                 break;
             default:
-                throw new InvalidStatusException("Unknown state: UNSUPPORTED_STATUS");
+                throw new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS");
         }
         return bookingList.stream().map(bookingMapper::toBookingDto).collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public List<BookingDto> getByStateOwner(Long ownerId, String state) {
+    public List<BookingDto> getByStateOwner(Long ownerId, String state, Integer from, Integer size) {
+        PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, sortByStartDesc);
         userRepository.findById(ownerId).orElseThrow(() -> new AbsenceException("User not exists"));
         BookingState bookingState = getBookingState(state);
         if (itemRepository.findByOwnerId(ownerId).isEmpty()) {
             throw new ItemUnavailableException("No items found");
         }
-        List<Booking> bookingList;
+        Page<Booking> bookingList;
         switch (bookingState) {
             case PAST:
                 bookingList = bookingRepository.findByItemOwnerIdAndEndIsBefore(ownerId,
-                        LocalDateTime.now(), sortByStartDesc);
+                        LocalDateTime.now(), pageable);
                 break;
             case CURRENT:
                 bookingList = bookingRepository.findByItemOwnerIdAndEndIsAfterAndStartIsBefore(ownerId,
-                        LocalDateTime.now(), LocalDateTime.now(), sortByStartDesc);
+                        LocalDateTime.now(), LocalDateTime.now(), pageable);
                 break;
             case FUTURE:
-                bookingList = bookingRepository.findByItemOwnerIdAndStartIsAfter(ownerId,
-                        LocalDateTime.now(), sortByStartDesc);
+                bookingList = bookingRepository.findByItemOwnerIdAndStartIsAfter(ownerId, LocalDateTime.now(), pageable);
                 break;
             case WAITING:
-                bookingList = bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.WAITING);
+                bookingList = bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.WAITING, pageable);
                 break;
             case REJECTED:
-                bookingList = bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.REJECTED);
+                bookingList = bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.REJECTED, pageable);
                 break;
             case ALL:
-                bookingList = bookingRepository.findByItemOwnerId(ownerId, sortByStartDesc);
+                bookingList = bookingRepository.findByItemOwnerId(ownerId, pageable);
                 break;
             default:
-                throw new InvalidStatusException("Unknown state: UNSUPPORTED_STATUS");
+                throw new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS");
         }
         return bookingList.stream().map(bookingMapper::toBookingDto).collect(Collectors.toList());
     }
@@ -164,7 +165,7 @@ public class BookingServiceImpl implements BookingService {
         try {
             return BookingState.valueOf(state.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new UnknownStatusException("Unknown state: UNSUPPORTED_STATUS");
+            throw new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS");
         }
     }
 }

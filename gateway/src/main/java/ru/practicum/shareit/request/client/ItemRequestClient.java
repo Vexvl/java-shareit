@@ -40,6 +40,6 @@ public class ItemRequestClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getById(Long ownerId, Long requestId) {
-        return get("/" + requestId, ownerId);
+        return get("/" + requestId, ownerId, null);
     }
 }

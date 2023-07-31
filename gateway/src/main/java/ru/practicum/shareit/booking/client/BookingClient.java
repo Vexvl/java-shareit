@@ -10,7 +10,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.booking.exception.WrongDateBookingException;
-import ru.practicum.shareit.client.BaseClient;;
+import ru.practicum.shareit.client.BaseClient;
 
 import java.util.Map;
 

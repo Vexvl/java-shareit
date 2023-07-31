@@ -15,10 +15,6 @@ public class BaseClient {
         this.rest = rest;
     }
 
-    protected ResponseEntity<Object> get(String path, Long ownerId, @Nullable Map<String, Object> parameters) {
-        return makeAndSendRequest(HttpMethod.GET, path, ownerId, parameters, null);
-    }
-
     protected <T> ResponseEntity<Object> post(String path, T body) {
         return post(path, null, null, body);
     }
@@ -27,16 +23,16 @@ public class BaseClient {
         return post(path, ownerId, null, body);
     }
 
+    protected ResponseEntity<Object> delete(String path) {
+        return delete(path, null, null);
+    }
+
+    protected ResponseEntity<Object> get(String path, Long ownerId, @Nullable Map<String, Object> parameters) {
+        return makeAndSendRequest(HttpMethod.GET, path, ownerId, parameters, null);
+    }
+
     protected <T> ResponseEntity<Object> post(String path, Long ownerId, @Nullable Map<String, Object> parameters, T body) {
         return makeAndSendRequest(HttpMethod.POST, path, ownerId, parameters, body);
-    }
-
-    protected <T> ResponseEntity<Object> put(String path, Long ownerId, T body) {
-        return put(path, ownerId, null, body);
-    }
-
-    protected <T> ResponseEntity<Object> put(String path, Long ownerId, @Nullable Map<String, Object> parameters, T body) {
-        return makeAndSendRequest(HttpMethod.PUT, path, ownerId, parameters, body);
     }
 
     protected <T> ResponseEntity<Object> patch(String path, Long ownerId) {
@@ -49,10 +45,6 @@ public class BaseClient {
 
     protected <T> ResponseEntity<Object> patch(String path, Long ownerId, @Nullable Map<String, Object> parameters, T body) {
         return makeAndSendRequest(HttpMethod.PATCH, path, ownerId, parameters, body);
-    }
-
-    protected ResponseEntity<Object> delete(String path) {
-        return delete(path, null, null);
     }
 
     protected ResponseEntity<Object> delete(String path, Long ownerId, @Nullable Map<String, Object> parameters) {

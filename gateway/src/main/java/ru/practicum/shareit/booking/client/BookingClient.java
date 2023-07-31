@@ -32,23 +32,23 @@ public class BookingClient extends BaseClient {
         return get("?state={state}&from={from}&size={size}", ownerId, parameters);
     }
 
-    public ResponseEntity<Object> addBooking(Long userId, BookItemRequestDto requestDto) {
+    public ResponseEntity<Object> addBooking(Long ownerId, BookItemRequestDto requestDto) {
         if (requestDto.getStart().isAfter(requestDto.getEnd()) || requestDto.getStart().equals(requestDto.getEnd())) {
             throw new WrongDateBookingException("WrongDateBookingException");
         }
-        return post("", userId, requestDto);
+        return post("", ownerId, requestDto);
     }
 
-    public ResponseEntity<Object> getById(Long userId, Long bookingId) {
-        return get("/" + bookingId, userId, null);
+    public ResponseEntity<Object> getById(Long ownerId, Long bookingId) {
+        return get("/" + bookingId, ownerId, null);
     }
 
-    public ResponseEntity<Object> getByState(Long userId, BookingState state, Integer from, Integer size) {
+    public ResponseEntity<Object> getByState(Long ownerId, BookingState state, Integer from, Integer size) {
         Map<String, Object> parameters = Map.of("state", state.name(), "from", from, "size", size);
-        return get("/owner?state={state}&from={from}&size={size}", userId, parameters);
+        return get("/owner?state={state}&from={from}&size={size}", ownerId, parameters);
     }
 
-    public ResponseEntity<Object> changeBookingStatus(Long userId, Long bookingId, Boolean approved) {
-        return patch("/" + bookingId + "?approved=" + approved, userId);
+    public ResponseEntity<Object> changeBookingStatus(Long ownerId, Long bookingId, Boolean approved) {
+        return patch("/" + bookingId + "?approved=" + approved, ownerId);
     }
 }

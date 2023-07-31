@@ -30,12 +30,12 @@ public class ItemClient extends BaseClient {
         return post("", ownerId, itemDto);
     }
 
-    public ResponseEntity<Object> getAllUserItem(long userId, Integer from, Integer size) {
+    public ResponseEntity<Object> getAllUserItem(Long ownerId, Integer from, Integer size) {
         Map<String, Object> parameters = Map.of(
                 "from", from,
                 "size", size
         );
-        return get("?from={from}&size={size}", userId, parameters);
+        return get("?from={from}&size={size}", ownerId, parameters);
     }
 
     public ResponseEntity<Object> getById(Long itemId, Long ownerId) {

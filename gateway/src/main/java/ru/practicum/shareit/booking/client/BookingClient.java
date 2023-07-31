@@ -33,9 +33,6 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> addBooking(Long ownerId, BookItemRequestDto requestDto) {
-        if (requestDto.getStart().isAfter(requestDto.getEnd()) || requestDto.getStart().equals(requestDto.getEnd())) {
-            throw new WrongDateBookingException("WrongDateBookingException");
-        }
         return post("", ownerId, requestDto);
     }
 

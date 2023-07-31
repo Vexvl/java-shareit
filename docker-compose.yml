@@ -12,7 +12,6 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=iamroot
-      - TZ=Europe/Moscow
 
   server:
     build: ./server
@@ -26,7 +25,6 @@ services:
       - DB_URL=jdbc:postgresql://db:5432/postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=iamroot
-      - TZ=Europe/Moscow
 
   gateway:
     build: ./gateway
@@ -38,4 +36,3 @@ services:
       - server
     environment:
       - SHAREIT_SERVER_URL=http://server:9090
-      - TZ=Europe/Moscow

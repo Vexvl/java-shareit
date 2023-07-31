@@ -29,7 +29,7 @@ public class UserClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getById(Long ownerId) {
-        return get("/" + ownerId, ownerId, null);
+        return get("/" + ownerId, ownerId);
     }
 
     public ResponseEntity<Object> addUser(UserDto userDto) {

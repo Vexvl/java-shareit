@@ -40,7 +40,7 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getById(Long ownerId, Long bookingId) {
-        return get("/" + bookingId, ownerId);
+        return get("/" + bookingId, ownerId, null);
     }
 
     public ResponseEntity<Object> getByState(Long ownerId, BookingState state, Integer from, Integer size) {

@@ -56,12 +56,6 @@ public class ExceptionsHandler {
         return Map.of("EmailDuplicateException", e.getMessage());
     }
 
-    @ExceptionHandler(UnsupportedStatusException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleUnknownStatusException(UnsupportedStatusException e) {
-        return Map.of("error", "Unknown state: UNSUPPORTED_STATUS", "errorMessage", "Ошибка");
-    }
-
     @ExceptionHandler(NoBookingException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleNoBookingException(NoBookingException e) {

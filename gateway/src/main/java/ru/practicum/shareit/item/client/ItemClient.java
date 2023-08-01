@@ -31,10 +31,7 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getAllUserItem(Long ownerId, Integer from, Integer size) {
-        Map<String, Object> parameters = Map.of(
-                "from", from,
-                "size", size
-        );
+        Map<String, Object> parameters = Map.of("from", from, "size", size);
         return get("?from={from}&size={size}", ownerId, parameters);
     }
 
@@ -47,10 +44,7 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> searchItems(Long ownerId, String text, Integer from, Integer size) {
-        Map<String, Object> parameters = Map.of(
-                "from", from,
-                "size", size
-        );
+        Map<String, Object> parameters = Map.of("from", from, "size", size);
         return get("/search?text=" + text, ownerId, parameters);
     }
 }

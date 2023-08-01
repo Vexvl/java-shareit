@@ -21,7 +21,7 @@ public class ItemRequestController {
     @PostMapping
     @Validated
     public ResponseEntity<Object> addItemRequest(@RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                                    @RequestBody @Valid ItemRequestDto itemRequestDto) {
+                                                 @RequestBody @Valid ItemRequestDto itemRequestDto) {
         return itemRequestClient.addItemRequest(itemRequestDto, ownerId);
     }
 
@@ -34,8 +34,8 @@ public class ItemRequestController {
     @GetMapping("/all")
     @Validated
     public ResponseEntity<Object> getAllNotOwner(@RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                                      @RequestParam(required = false, defaultValue = "0") @PositiveOrZero Integer from,
-                                                      @RequestParam(required = false, defaultValue = "10") @Positive Integer size) {
+                                                 @RequestParam(required = false, defaultValue = "0") @PositiveOrZero Integer from,
+                                                 @RequestParam(required = false, defaultValue = "10") @Positive Integer size) {
         return itemRequestClient.getAllNotOwner(ownerId, from, size);
     }
 

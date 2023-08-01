@@ -22,8 +22,8 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getById(@PathVariable Long ownerId) {
-        return userClient.getById(ownerId);
+    public ResponseEntity<Object> getById(@PathVariable Long id) {
+        return userClient.getById(id);
     }
 
     @PostMapping

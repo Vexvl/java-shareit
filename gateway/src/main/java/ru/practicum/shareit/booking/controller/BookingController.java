@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.client.BookingClient;
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingState;
+import ru.practicum.shareit.booking.exception.WrongDateBookingException;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -36,6 +37,9 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<Object> addNewBooking(@RequestHeader("X-Sharer-User-Id") Long ownerId,
                                                 @RequestBody @Valid BookItemRequestDto requestDto) {
+        if (requestDto.getStart().isAfter(requestDto.getEnd()) || requestDto.getStart().equals(requestDto.getEnd())) {
+            throw new WrongDateBookingException("Unexpected time values of booking");
+        }
         return bookingClient.addBooking(ownerId, requestDto);
     }
 

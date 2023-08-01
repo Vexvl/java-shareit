@@ -17,7 +17,7 @@ public class ItemRequestClient extends BaseClient {
     private static final String ITEM_REQUEST_API_PREFIX = "/requests";
 
     @Autowired
-    public ItemRequestClient(@Value("http://localhost:9090") String serverUrl, RestTemplateBuilder builder) {
+    public ItemRequestClient(@Value("http://localhost:8080") String serverUrl, RestTemplateBuilder builder) {
         super(
                 builder
                         .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + ITEM_REQUEST_API_PREFIX))

@@ -16,7 +16,7 @@ public class CommentClient extends BaseClient {
     private static final String COMMENT_API_PREFIX = "/comments";
 
     @Autowired
-    public CommentClient(@Value("http://localhost:9090") String serverUrl, RestTemplateBuilder builder) {
+    public CommentClient(@Value("http://localhost:8080") String serverUrl, RestTemplateBuilder builder) {
         super(
                 builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + COMMENT_API_PREFIX))
                         .requestFactory(HttpComponentsClientHttpRequestFactory::new)

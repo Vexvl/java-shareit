@@ -18,7 +18,7 @@ public class BookingClient extends BaseClient {
     private static final String BOOKING_API_PREFIX = "/bookings";
 
     @Autowired
-    public BookingClient(@Value("http://localhost:9090") String serverUrl, RestTemplateBuilder builder) {
+    public BookingClient(@Value("http://localhost:8080") String serverUrl, RestTemplateBuilder builder) {
         super(
                 builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + BOOKING_API_PREFIX))
                         .requestFactory(HttpComponentsClientHttpRequestFactory::new)

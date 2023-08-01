@@ -2,7 +2,7 @@ version: '3.8'
 services:
   db:
     image: postgres:13.7
-    container_name: db
+    container_name: db2
     volumes:
       - /var/lib/postgresql/data/
     ports:
@@ -14,7 +14,7 @@ services:
 
   server:
     build: ./server
-    container_name: server
+    container_name: server2
     ports:
       - "9090:9090"
     depends_on:
@@ -27,7 +27,7 @@ services:
 
   gateway:
     build: ./gateway
-    container_name: gateway
+    container_name: gateway2
     ports:
       - "8080:8080"
     depends_on:

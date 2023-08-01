@@ -15,7 +15,7 @@ public class UserClient extends BaseClient {
     private static final String USER_API_PREFIX = "/users";
 
     @Autowired
-    public UserClient(@Value("http://localhost:8080") String serverUrl, RestTemplateBuilder builder) {
+    public UserClient(@Value("http://localhost:9090") String serverUrl, RestTemplateBuilder builder) {
         super(
                 builder
                         .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + USER_API_PREFIX))

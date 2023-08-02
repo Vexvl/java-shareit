@@ -17,7 +17,7 @@ public class ItemClient extends BaseClient {
     private static final String ITEM_API_PREFIX = "/items";
 
     @Autowired
-    public ItemClient(@Value("http://localhost:9090") String serverUrl, RestTemplateBuilder builder) {
+    public ItemClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
         super(
                 builder
                         .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + ITEM_API_PREFIX))
@@ -36,7 +36,7 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getById(Long itemId, Long ownerId) {
-        return get("/" + itemId, ownerId, null);
+        return get("/" + itemId, ownerId);
     }
 
     public ResponseEntity<Object> updateItem(Long ownerId, Long itemId, ItemDto itemDto) {

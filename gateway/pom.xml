@@ -11,7 +11,7 @@
     <artifactId>shareit-gateway</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>gateway</name>
+    <name>ShareIt Gateway</name>
 
     <dependencies>
         <dependency>

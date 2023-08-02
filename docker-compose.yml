@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   gateway:
-    build: ../../java-shareit-add-docker/gateway
+    build: ../../java-shareit/gateway
     image: gateway
     container_name: gateway-container
     ports:
@@ -12,7 +12,7 @@ services:
       - SHAREIT_SERVER_URL=http://server:9090
 
   server:
-    build: ../../java-shareit-add-docker/server
+    build: ../../java-shareit/server
     image: server
     container_name: server-container
     ports:

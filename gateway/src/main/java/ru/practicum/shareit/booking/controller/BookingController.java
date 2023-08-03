@@ -28,7 +28,7 @@ public class BookingController {
 													 @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
 													 @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
 		BookingState state = BookingState.from(stateParam)
-				.orElseThrow(() -> new IllegalArgumentException("Unknown state: UNSUPPORTED_STATUS"));
+				.orElseThrow(() -> new IllegalArgumentException(stateParam));
 		return bookingClient.getBookings(ownerId, state, from, size);
 	}
 
@@ -50,7 +50,7 @@ public class BookingController {
 													  @RequestParam(required = false, defaultValue = "0") @PositiveOrZero Integer from,
 													  @RequestParam(required = false, defaultValue = "10") @Positive Integer size) {
 		BookingState state = BookingState.from(stateParam)
-				.orElseThrow(() -> new IllegalArgumentException("Unknown state: UNSUPPORTED_STATUS"));
+				.orElseThrow(() -> new IllegalArgumentException(stateParam));
 		return bookingClient.getUserItemsBooking(ownerId, state, from, size);
 	}
 

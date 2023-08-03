@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.booking.exception.NoBookingException;
-import ru.practicum.shareit.booking.exception.UnsupportedStatusException;
 import ru.practicum.shareit.booking.exception.WrongDateBookingException;
 import ru.practicum.shareit.item.exception.*;
 import ru.practicum.shareit.user.exception.EmailDuplicateException;
@@ -54,12 +53,6 @@ public class ExceptionsHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     public Map<String, String> handleEmailDuplicateException(EmailDuplicateException e) {
         return Map.of("EmailDuplicateException", e.getMessage());
-    }
-
-    @ExceptionHandler(UnsupportedStatusException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleUnknownStatusException(UnsupportedStatusException e) {
-        return Map.of("error", "Unknown state: UNSUPPORTED_STATUS", "errorMessage", "Ошибка");
     }
 
     @ExceptionHandler(NoBookingException.class)

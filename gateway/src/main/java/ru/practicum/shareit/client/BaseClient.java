@@ -15,6 +15,10 @@ public class BaseClient {
         this.rest = rest;
     }
 
+    protected <T> ResponseEntity<Object> post(String path, T body) {
+        return post(path, null, null, body);
+    }
+
     protected <T> ResponseEntity<Object> post(String path, Long ownerId, T body) {
         return post(path, ownerId, null, body);
     }

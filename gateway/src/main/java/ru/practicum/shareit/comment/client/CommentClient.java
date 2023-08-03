@@ -13,12 +13,12 @@ import ru.practicum.shareit.comment.dto.CommentDto;
 @Service
 public class CommentClient extends BaseClient {
 
-    private static final String COMMENT_API_PREFIX = "/comments";
+    private static final String ITEM_API_PREFIX = "/items";
 
     @Autowired
     public CommentClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
         super(
-                builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + COMMENT_API_PREFIX))
+                builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + ITEM_API_PREFIX))
                         .requestFactory(HttpComponentsClientHttpRequestFactory::new)
                         .build()
         );

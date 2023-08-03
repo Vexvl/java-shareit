@@ -33,7 +33,7 @@ public class UserClient extends BaseClient {
     }
 
     public ResponseEntity<Object> addUser(UserDto userDto) {
-        return post("", null, userDto);
+        return post("", userDto);
     }
 
     public ResponseEntity<Object> editUser(Long ownerId, UserDto userDto) {

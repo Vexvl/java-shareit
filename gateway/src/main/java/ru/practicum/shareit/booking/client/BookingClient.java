@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingState;
-import ru.practicum.shareit.booking.exception.WrongDateBookingException;
 import ru.practicum.shareit.client.BaseClient;
 
 import java.util.Map;
@@ -34,9 +33,6 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> addBooking(Long ownerId, BookItemRequestDto requestDto) {
-        if (requestDto.getStart().isAfter(requestDto.getEnd()) || requestDto.getStart().equals(requestDto.getEnd())) {
-            throw new WrongDateBookingException("WrongDateBookingException");
-        }
         return post("", ownerId, requestDto);
     }
 

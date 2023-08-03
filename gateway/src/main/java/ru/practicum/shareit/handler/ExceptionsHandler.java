@@ -11,6 +11,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ExceptionsHandler {
+
     @ExceptionHandler(WrongDateBookingException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleWrongDateBookingException(WrongDateBookingException e) {

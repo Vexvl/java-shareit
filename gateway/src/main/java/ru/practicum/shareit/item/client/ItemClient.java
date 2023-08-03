@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.client;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -13,6 +14,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class ItemClient extends BaseClient {
     private static final String ITEM_API_PREFIX = "/items";
 

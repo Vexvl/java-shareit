@@ -18,6 +18,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             "OR lower(it.description) LIKE lower(concat('%', ?1,'%')))")
     List<Item> searchByText(String text, Pageable pageable);
 
-    @Query(value = "SELECT * FROM items WHERE request_id IN ?1", nativeQuery = true)
+    @Query(value = "SELECT * FROM items WHERE request_id IN ?1 ORDER BY id ASC", nativeQuery = true)
     List<Item> findAllByRequestIn(List<Long> requestIds);
 }

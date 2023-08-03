@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.client.BookingClient;
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingState;
-import ru.practicum.shareit.booking.exception.UnsupportedStatusException;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -29,7 +28,7 @@ public class BookingController {
 													 @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
 													 @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
 		BookingState state = BookingState.from(stateParam)
-				.orElseThrow(() -> new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS"));
+				.orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
 		return bookingClient.getBookings(ownerId, state, from, size);
 	}
 
@@ -48,10 +47,10 @@ public class BookingController {
 	@GetMapping("/owner")
 	public ResponseEntity<Object> getUserItemsBooking(@RequestHeader("X-Sharer-User-Id") Long ownerId,
 													  @RequestParam(name = "state", defaultValue = "all") String stateParam,
-													  @RequestParam(required = false, defaultValue = "0") @PositiveOrZero int from,
+													  @RequestParam(required = false, defaultValue = "0") @PositiveOrZero Integer from,
 													  @RequestParam(required = false, defaultValue = "10") @Positive Integer size) {
 		BookingState state = BookingState.from(stateParam)
-				.orElseThrow(() -> new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS"));
+				.orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
 		return bookingClient.getUserItemsBooking(ownerId, state, from, size);
 	}
 

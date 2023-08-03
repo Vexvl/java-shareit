@@ -140,6 +140,9 @@ public class ItemServiceImpl implements ItemService {
 
             itemDtoList.add(itemDto);
         }
+
+        itemDtoList.sort(Comparator.comparing(ItemDtoBookingComments::getId));
+
         return itemDtoList;
     }
 

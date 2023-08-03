@@ -5,13 +5,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.shareit.booking.exception.UnsupportedStatusException;
 
 @RestControllerAdvice
 @Slf4j
 public class ExceptionsHandler {
-    @ExceptionHandler(UnsupportedStatusException.class)
-    public ResponseEntity<String> handleUnsupportedStatusException(UnsupportedStatusException ex) {
-        return new ResponseEntity<>("Unknown state: UNSUPPORTED_STATUS", HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleUnhandledException(Exception e) {
+        return new ResponseEntity<>("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

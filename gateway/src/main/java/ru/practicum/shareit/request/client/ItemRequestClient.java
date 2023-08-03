@@ -31,7 +31,7 @@ public class ItemRequestClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getUserResponse(Long ownerId) {
-        return get("", ownerId);
+        return get("", ownerId, null);
     }
 
     public ResponseEntity<Object> getAllNotOwner(Long ownerId, Integer from, Integer size) {
@@ -40,6 +40,6 @@ public class ItemRequestClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getById(Long ownerId, Long requestId) {
-        return get("/" + requestId, ownerId);
+        return get("/" + requestId, ownerId, null);
     }
 }

@@ -25,11 +25,11 @@ public class UserClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getAllUsers() {
-        return get("");
+        return get("", null, null);
     }
 
     public ResponseEntity<Object> getById(Long ownerId) {
-        return get("/" + ownerId, ownerId);
+        return get("/" + ownerId, ownerId, null);
     }
 
     public ResponseEntity<Object> addUser(UserDto userDto) {

@@ -36,7 +36,7 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getById(Long itemId, Long ownerId) {
-        return get("/" + itemId, ownerId);
+        return get("/" + itemId, ownerId, null);
     }
 
     public ResponseEntity<Object> editItem(Long ownerId, Long itemId, ItemDto itemDto) {

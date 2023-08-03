@@ -16,7 +16,7 @@ import java.util.Map;
 public class ExceptionsHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleUnhandledException(Exception e) {
-        return new ResponseEntity<>("An unexpected error occurred", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(AbsenceException.class)

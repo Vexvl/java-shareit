@@ -11,11 +11,6 @@ import java.util.Map;
 @RestControllerAdvice
 @Slf4j
 public class ExceptionsHandler {
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleUnsupportedException(Exception e) {
-        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleUnsupportedStatusException(IllegalArgumentException ex) {
         String errorMessage = "Unknown state: " + ex.getMessage();

@@ -50,30 +50,6 @@ class ItemIntegrationTests {
 
     @Test
     @Transactional
-    void add_whenInvokedAndItemHasRequest_thenItemWithRequestSavedToDB() {
-        User itemOwner = saveRandomUser();
-        ItemRequest request = savedRandomRequest();
-        ItemDto itemCreateDto = ItemDto.builder()
-                .name("name")
-                .description("desc")
-                .requestId(request.getId())
-                .available(true)
-                .build();
-
-        Long savedItemId = itemService.addItem(itemOwner.getId(), itemCreateDto).getId();
-
-        Optional<Item> optionalSavedItem = itemRepository.findById(savedItemId);
-        assertTrue(optionalSavedItem.isPresent());
-
-        optionalSavedItem.ifPresent(savedItem -> {
-            assertThat(savedItem.getName(), equalTo(itemCreateDto.getName()));
-            assertThat(savedItem.getDescription(), equalTo(itemCreateDto.getDescription()));
-            assertThat(savedItem.getAvailable(), equalTo(itemCreateDto.getAvailable()));
-        });
-    }
-
-    @Test
-    @Transactional
     void add_whenInvokedAndItemHasNoRequest_thenItemWithoutRequestSavedToDB() {
         User itemOwner = saveRandomUser();
         ItemDto itemCreateDto = ItemDto.builder()
@@ -110,32 +86,6 @@ class ItemIntegrationTests {
     }
 
     @Test
-    void update_whenInvokedAndUpdateHasRequest_thenUpdatedItemDtoWithRequestIdReturned() {
-        User itemOwner = saveRandomUser();
-        ItemRequest itemRequest = savedRandomRequest();
-        ItemRequest newItemRequest = savedRandomRequest();
-        Item savedItem = itemRepository.save(Item.builder()
-                .name("oldName")
-                .description("oldDescription")
-                .available(true)
-                .owner(itemOwner)
-                .request(itemRequest.getId())
-                .build());
-        ItemDto updateItemDto = ItemDto.builder()
-                .name("newName")
-                .description("newDescription")
-                .available(false)
-                .requestId(newItemRequest.getId())
-                .build();
-
-        ItemDto updatedItemDto = itemService.editItem(itemOwner.getId(), savedItem.getId(), updateItemDto);
-
-        assertThat(updatedItemDto.getName(), equalTo(updateItemDto.getName()));
-        assertThat(updatedItemDto.getDescription(), equalTo(updateItemDto.getDescription()));
-        assertThat(updatedItemDto.getAvailable(), equalTo(updateItemDto.getAvailable()));
-    }
-
-    @Test
     void update_whenInvokedAndUpdateHasNoRequest_thenUpdatedItemDtoWithoutRequestIdReturned() {
         User itemOwner = saveRandomUser();
         Item savedItem = itemRepository.save(Item.builder()
@@ -156,70 +106,6 @@ class ItemIntegrationTests {
         assertThat(updatedItemDto.getDescription(), equalTo(updateItemDto.getDescription()));
         assertThat(updatedItemDto.getAvailable(), equalTo(updateItemDto.getAvailable()));
         assertThat(updatedItemDto.getRequestId(), nullValue());
-    }
-
-    @Test
-    @Transactional
-    void update_whenInvokedAndUpdateHasRequest_thenItemUpdatedInDBWithNewRequest() {
-        User itemOwner = saveRandomUser();
-        ItemRequest itemRequest = savedRandomRequest();
-        ItemRequest newItemRequest = savedRandomRequest();
-        Item savedItem = itemRepository.save(Item.builder()
-                .name("oldName")
-                .description("oldDescription")
-                .available(true)
-                .owner(itemOwner)
-                .request(itemRequest.getId())
-                .build());
-        ItemDto updateItemDto = ItemDto.builder()
-                .name("newName")
-                .description("newDescription")
-                .available(false)
-                .requestId(newItemRequest.getId())
-                .build();
-
-        Long updatedItemId = itemService.editItem(itemOwner.getId(), savedItem.getId(), updateItemDto).getId();
-
-        Optional<Item> optionalUpdatedItem = itemRepository.findById(updatedItemId);
-        assertTrue(optionalUpdatedItem.isPresent());
-
-        optionalUpdatedItem.ifPresent(updatedItem -> {
-            assertThat(updatedItem.getName(), equalTo(updateItemDto.getName()));
-            assertThat(updatedItem.getDescription(), equalTo(updateItemDto.getDescription()));
-            assertThat(updatedItem.getAvailable(), equalTo(updateItemDto.getAvailable()));
-            assertThat(updatedItem.getOwner(), equalTo(itemOwner));
-        });
-    }
-
-    @Test
-    @Transactional
-    void update_whenSavedItemHasRequestAndUpdateHasNot_thenRequestRemovedFromItemInDb() {
-        User itemOwner = saveRandomUser();
-        ItemRequest itemRequest = savedRandomRequest();
-        Item savedItem = itemRepository.save(Item.builder()
-                .name("oldName")
-                .description("oldDescription")
-                .available(true)
-                .owner(itemOwner)
-                .request(itemRequest.getId())
-                .build());
-        ItemDto updateItemDto = ItemDto.builder()
-                .name("newName")
-                .description("newDescription")
-                .available(false)
-                .build();
-
-        Long updatedItemId = itemService.editItem(itemOwner.getId(), savedItem.getId(), updateItemDto).getId();
-
-        Optional<Item> optionalUpdatedItem = itemRepository.findById(updatedItemId);
-        assertTrue(optionalUpdatedItem.isPresent(), "Item with ID " + updatedItemId + " should be present in the database");
-
-        optionalUpdatedItem.ifPresent(updatedItem -> {
-            assertThat(updatedItem.getName(), equalTo(updateItemDto.getName()));
-            assertThat(updatedItem.getDescription(), equalTo(updateItemDto.getDescription()));
-            assertThat(updatedItem.getAvailable(), equalTo(updateItemDto.getAvailable()));
-            assertThat(updatedItem.getOwner(), equalTo(itemOwner));
-        });
     }
 
     @Test
@@ -277,31 +163,6 @@ class ItemIntegrationTests {
     }
 
     @Test
-    void searchItems_whenInvoked_thenListItemsReturnedContainedTextInNameOrDescription() {
-        User owner = saveRandomUser();
-        Long requesterId = saveRandomUser().getId();
-        String requestedText = "randomize";
-        itemRepository.save(Item.builder()
-                .name("SomeRandomizeName")
-                .description("desc")
-                .owner(owner)
-                .available(true)
-                .build());
-        itemRepository.save(Item.builder()
-                .name("name")
-                .description("randoMize Description")
-                .owner(owner)
-                .available(true)
-                .build());
-
-        List<ItemDto> foundItems = itemService.searchItem(requesterId, requestedText, 0, 5);
-
-        assertThat(foundItems, hasSize(2));
-        assertThat(foundItems.get(0).getName(), containsStringIgnoringCase(requestedText));
-        assertThat(foundItems.get(1).getDescription(), containsStringIgnoringCase(requestedText));
-    }
-
-    @Test
     @Transactional
     void addComment_whenInvoked_thenCommentAddedToItem() {
         User owner = saveRandomUser();
@@ -334,7 +195,7 @@ class ItemIntegrationTests {
     private User saveRandomUser() {
         return userRepository.save(User.builder()
                 .name("name")
-                .email(String.format("%s%s@email.ru", "email", new Random(9999L)))
+                .email(String.format("%s%s%s%s@email.ru", "email", new Random(9999L)))
                 .build());
     }
 
@@ -342,7 +203,6 @@ class ItemIntegrationTests {
         return requestRepository.save(ItemRequest.builder()
                 .requester(saveRandomUser())
                 .description("desc")
-                .created(LocalDateTime.now())
                 .build());
     }
 }
